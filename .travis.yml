@@ -1,7 +1,7 @@
-# NOTE: link (and commit) this file to your plugin root
+# NOTE: you will need to copy this file to your plugin root!
 #
-#     plugin-root-dir $  ln --symbolic ci/.travis.yml
-#     plugin-root-dir $  git add .travis.yml && git commit
+# Doing a `ln --symbolic ci/.travis.yml` won't work as Travis expects
+# to read the *.travis.yml* file BEFORE it initializes git submodules.
 #
 ---
 sudo: required
