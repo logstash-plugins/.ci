@@ -6,11 +6,6 @@
 ---
 sudo: required
 language: minimal
-services: docker
-addons:
-  apt:
-    packages:
-    - docker-ce
 matrix:
   include:
   - env: ELASTIC_STACK_VERSION=8.x SNAPSHOT=true
