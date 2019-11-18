@@ -7,5 +7,5 @@ ENV PATH="${PATH}:/usr/share/logstash/vendor/jruby/bin"
 ENV LOGSTASH_SOURCE="1"
 RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
-RUN bundle install
+RUN bundle install --with test ci
 COPY --chown=logstash:logstash . /usr/share/plugins/plugin
