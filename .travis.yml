@@ -1,0 +1,24 @@
+# NOTE: link (and commit) this file to your plugin root
+#
+#     plugin-root-dir $  ln --symbolic ci/.travis.yml
+#     plugin-root-dir $  git add .travis.yml && git commit
+#
+---
+sudo: required
+services: docker
+addons:
+  apt:
+    packages:
+    - docker-ce
+matrix:
+  include:
+  - env: ELASTIC_STACK_VERSION=8.x SNAPSHOT=true
+  - env: ELASTIC_STACK_VERSION=7.x SNAPSHOT=true
+  - env: ELASTIC_STACK_VERSION=7.x
+  - env: ELASTIC_STACK_VERSION=6.x
+  - env: ELASTIC_STACK_VERSION=5.x
+  fast_finish: true
+#allow_failures:
+#  - env: ELASTIC_STACK_VERSION=5.x
+install: ci/unit/docker-setup.sh
+script: ci/unit/docker-run.sh
