@@ -1,0 +1,35 @@
+# Github Action work-flow definition, copy to .github/workflows/
+#
+#   `mkdir -p .github/workflows && cp ci/.github/*.yml .github/workflows/`
+#
+name: Test Unit (SNAPSHOT)
+
+on: [push] # only test against SNAPSHOT ES versions on pushes (not on PRs)
+
+jobs:
+
+  test:
+    name: Elastic Stack ${{ matrix.es-version }}-SNAPSHOT on ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        es-version: [7.x, 8.x]
+        os: [ubuntu-latest]
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      ELASTIC_STACK_VERSION: ${{ matrix.es-version }}
+      SNAPSHOT: true
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Initialize Git submodules
+        run: git submodule update --init --recursive
+
+      - name: Build the Docker image
+        run: ci/unit/docker-setup.sh
+
+      - name: Run tests within Docker image
+        run: ci/unit/docker-run.sh
