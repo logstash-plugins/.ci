@@ -30,12 +30,18 @@ if [[ "$ELASTIC_STACK_RETRIEVED_VERSION" != "null" ]]; then
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
 fi
 
-echo "Testing against version: $ELASTIC_STACK_VERSION"
+if [[ "$DISTRIBUTION" = "oss" ]]; then
+  DISTRIBUTION_SUFFIX="-oss"
+else
+  DISTRIBUTION_SUFFIX=""
+fi
+
+echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
 if [[ "$ELASTIC_STACK_VERSION" = *"-SNAPSHOT" ]]; then
     cd /tmp
 
-    jq=".build.projects.\"logstash-docker\".packages.\"logstash-$ELASTIC_STACK_VERSION-docker-image.tar.gz\".url"
+    jq=".build.projects.\"logstash\".packages.\"logstash$DISTRIBUTION_SUFFIX-$ELASTIC_STACK_VERSION-docker-image.tar.gz\".url"
     result=$(curl --silent https://artifacts-api.elastic.co/v1/versions/$ELASTIC_STACK_VERSION/builds/latest | jq -r $jq)
     echo $result
     curl $result > logstash-docker-image.tar.gz
