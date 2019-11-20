@@ -58,5 +58,5 @@ if [ -f Gemfile.lock ]; then
 fi
 
 docker-compose -f ci/unit/docker-compose.yml down
-docker-compose -f ci/unit/docker-compose.yml build
+docker-compose -f ci/unit/docker-compose.yml build logstash
 #docker-compose -f ci/unit/docker-compose.yml up --exit-code-from logstash --force-recreate
