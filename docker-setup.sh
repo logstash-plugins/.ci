@@ -57,6 +57,9 @@ if [ -f Gemfile.lock ]; then
     rm Gemfile.lock
 fi
 
-docker-compose -f ci/unit/docker-compose.yml down
-docker-compose -f ci/unit/docker-compose.yml build logstash
-#docker-compose -f ci/unit/docker-compose.yml up --exit-code-from logstash --force-recreate
+CURRENT_DIR=$(dirname "${BASH_SOURCE[0]}") # e.g. "ci/unit"
+
+docker-compose -f "$CURRENT_DIR/docker-compose.yml" down
+docker-compose -f "$CURRENT_DIR/docker-compose.yml" build logstash
+
+#docker-compose -f "$CURRENT_DIR/docker-compose.yml" up --exit-code-from logstash --force-recreate
