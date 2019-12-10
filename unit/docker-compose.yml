@@ -12,8 +12,9 @@ services:
         - ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
         - DISTRIBUTION=${DISTRIBUTION:-default}
         #- INTEGRATION=false
-    command: /usr/share/plugins/plugin/ci/unit/run.sh
+    command: ci/unit/run.sh
     env_file: docker.env
     environment:
       - SPEC_OPTS
+      #- JRUBY_OPTS
     tty: true
