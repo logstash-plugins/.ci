@@ -1,6 +1,10 @@
 # Github Action work-flow definition, copy to .github/workflows/
 #
-#   `mkdir -p .github/workflows && cp ci/.github/*.yml .github/workflows/`
+#   `mkdir -p .github/workflows && cp .ci/.github/workflows/* .github/workflows/`
+#
+# ... and remove the .example suffix :
+#
+#   `for f in `find .github/workflows -iname '*.example' -type f -print`; do mv "$f" ${f%.example}; done`
 #
 name: Test Unit (SNAPSHOT)
 
