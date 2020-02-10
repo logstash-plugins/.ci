@@ -1,5 +1,6 @@
 ARG ELASTIC_STACK_VERSION
 FROM docker.elastic.co/logstash/logstash:$ELASTIC_STACK_VERSION
+USER logstash
 COPY --chown=logstash:logstash Gemfile /usr/share/plugins/plugin/Gemfile
 COPY --chown=logstash:logstash *.gemspec /usr/share/plugins/plugin/
 RUN cp /usr/share/logstash/logstash-core/versions-gem-copy.yml /usr/share/logstash/versions.yml
@@ -16,3 +17,4 @@ RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
 RUN bundle install --with test ci
 COPY --chown=logstash:logstash . /usr/share/plugins/plugin
+RUN .ci/setup.sh
