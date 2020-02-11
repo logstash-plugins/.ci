@@ -1,9 +1,9 @@
-# Sample file for running tests with Travis CI.
+# Shared (unit tests) build configuration for Travis CI.
 #
-# NOTE: you will need to copy this file to your plugin root!
-#
-# Doing a `ln --symbolic ci/.travis.yml` won't work as Travis expects
-# to read the *.travis.yml* file BEFORE it initializes git submodules.
+# Setup your .travis.yml to import this file e.g. :
+#    ---
+#    version: ~> 1.0
+#    import: logstash-plugins/.ci:unit.travis.yml@master
 #
 ---
 sudo: required
