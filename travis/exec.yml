@@ -1,3 +1,3 @@
-before_install: ci/before_install.sh
-install: ci/setup.sh
-script: ci/run.sh
+before_install: .ci/before_install.sh
+install: .ci/docker-setup.sh
+script: .ci/docker-run.sh
