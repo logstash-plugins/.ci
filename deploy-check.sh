@@ -1,6 +1,9 @@
 #!/bin/bash
 
-VERSION=$(ruby -rrubygems -e 'gemspec_path = Dir.glob("*.gemspec").first; puts "v" + Gem::Specification.load(gemspec_path).version.to_s')
+jruby -rrubygems -e 'gemspec_path = Dir.glob("*.gemspec").first; IO.write("new_version", "v" + Gem::Specification.load(gemspec_path).version.to_s)'
+
+VERSION=$(cat new_version)
+
 ruby -e "versions = IO.popen(\"git tag -l\").read.split(\"\n\"); exit(1) if versions.include?(\"${VERSION}\")"
 
 status=$?

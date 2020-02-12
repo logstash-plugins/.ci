@@ -15,8 +15,6 @@ ENV DISTRIBUTION=$DISTRIBUTION
 # INTEGRATION="true" while integration testing (false-y by default)
 ARG INTEGRATION
 ENV INTEGRATION=$INTEGRATION
-ARG GEM_HOST_API_KEY
-ENV GEM_HOST_API_KEY=$GEM_HOST_API_KEY
 RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
 RUN bundle install --with test ci
