@@ -1,0 +1,5 @@
+import:
+- jsvd/.ci:travis/defaults.yml@travis_refactor
+- jsvd/.ci:travis/matrix.yml@travis_refactor
+- jsvd/.ci:travis/exec.yml@travis_refactor
+- jsvd/.ci:travis/deploy.yml@travis_refactor
