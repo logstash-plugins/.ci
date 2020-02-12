@@ -9,3 +9,4 @@ jobs:
     deploy:
       provider: script
       script: .ci/docker-publish.sh
+      skip_cleanup: true
