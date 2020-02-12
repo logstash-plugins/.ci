@@ -2,8 +2,15 @@
 
 set -e
 
+jruby -rrubygems -e 'gemspec_path = Dir.glob("*.gemspec").first; IO.write("new_version", "v" + Gem::Specification.load(gemspec_path).version.to_s)'
+
 NEW_VERSION=$(cat new_version)
-echo "Let's try to publish \"$NEW_VERSION\"."
+
+if [ $(git tag -l "$NEW_VERSION") ]; then
+    echo "Found tag \"$NEW_VERSION\", Aborting..Please bump the plugin version."
+else
+    echo "Let's try to publish \"$NEW_VERSION\"."
+fi
 
 jgem build *.gemspec
 
