@@ -13,9 +13,9 @@ Set up your plugin's .travis.yml:
 
 ```
 import:
-- logstash-plugins/.ci:travis/defaults.yml@travis_refactor
-- logstash-plugins/.ci:travis/matrix.yml@travis_refactor
-- logstash-plugins/.ci:travis/exec.yml@travis_refactor
+- logstash-plugins/.ci:travis/defaults.yml@v0.1.0
+- logstash-plugins/.ci:travis/matrix.yml@v0.1.0
+- logstash-plugins/.ci:travis/exec.yml@v0.1.0
 ```
 
 ### Custom behaviour

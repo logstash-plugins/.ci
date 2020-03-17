@@ -1,4 +1,4 @@
 before_install:
-  - mkdir -p .ci && curl -sL https://github.com/logstash-plugins/.ci/archive/travis_refactor.tar.gz | tar zxvf - --skip-old-files --strip-components=1 -C .ci --wildcards "*Dockerfile*" "*docker*" "*.sh"
+  - mkdir -p .ci && curl -sL https://github.com/logstash-plugins/.ci/archive/v0.1.0.tar.gz | tar zxvf - --skip-old-files --strip-components=1 -C .ci --wildcards "*Dockerfile*" "*docker*" "*.sh"
 install: .ci/docker-setup.sh
 script: .ci/docker-run.sh
