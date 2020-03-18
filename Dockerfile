@@ -17,4 +17,5 @@ RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
 RUN bundle install --with test ci
 COPY --chown=logstash:logstash . /usr/share/plugins/plugin
+RUN bundle exec rake vendor
 RUN .ci/setup.sh
