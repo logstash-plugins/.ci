@@ -7,4 +7,5 @@ CURRENT_DIR=$(dirname "${BASH_SOURCE[0]}")
 
 cd .ci
 
+# docker will look for: "./docker-compose.yml" (and "./docker-compose.override.yml")
 docker-compose up --exit-code-from logstash
