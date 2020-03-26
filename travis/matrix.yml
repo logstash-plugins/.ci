@@ -1,6 +1,31 @@
+_performance: &_performance
+  install: .ci/docker-setup.sh
+  script: .ci/docker-performance-run.sh
+
+# Only run performance tests if plugin has them.
+# Add to your .travis.yml
+# env:
+#  global:
+#    - HAS_PERFORMANCE_TESTS=1
+
+stages:
+- name: Test
+- name: Performance
+  if: env(HAS_PERFORMANCE_TESTS) == "1"  
+
 env:
   jobs:
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.0.0-SNAPSHOT
     - SNAPSHOT=true ELASTIC_STACK_VERSION=7.6.0-SNAPSHOT
     - ELASTIC_STACK_VERSION=7.x
     - ELASTIC_STACK_VERSION=6.x
+
+jobs:
+- stage: Performance
+  name: Performance Base-Line
+  <<: *_performance
+  env: ELASTIC_STACK_VERSION=6.x
+- <<: *_performance
+  env: SNAPSHOT=true ELASTIC_STACK_VERSION=8.0.0-SNAPSHOT
+- <<: *_performance
+  env: ELASTIC_STACK_VERSION=7.x
