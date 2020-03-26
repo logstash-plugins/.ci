@@ -1,6 +1,6 @@
 _performance: &_performance
-  install: .ci/docker-setup.sh
-  script: .ci/docker-performance-run.sh
+  install: .ci/performance/docker-setup.sh
+  script: .ci/performance/run.sh
 
 # Only run performance tests if plugin has them.
 # Add to your .travis.yml
@@ -11,7 +11,7 @@ _performance: &_performance
 stages:
 - name: Test
 - name: Performance
-  if: env(HAS_PERFORMANCE_TESTS) == "1"  
+  if: env(HAS_PERFORMANCE_TESTS) == "1"
 
 env:
   jobs:
