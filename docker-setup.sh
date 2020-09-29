@@ -36,6 +36,7 @@ else
   DISTRIBUTION_SUFFIX=""
 fi
 
+export ELASTIC_STACK_RETRIEVED_VERSION
 echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
 if [[ "$ELASTIC_STACK_VERSION" = *"-SNAPSHOT" ]]; then
