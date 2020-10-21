@@ -16,5 +16,5 @@ services:
     env_file: docker.env
     environment:
       - SPEC_OPTS
-      #- JRUBY_OPTS
+      - LOGGER_LEVEL # devutils reads the ENV and sets LS logging
     tty: true
