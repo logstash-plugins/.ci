@@ -30,11 +30,11 @@ if [[ "$ELASTIC_STACK_RETRIEVED_VERSION" != "null" ]]; then
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
 fi
 
-if [[ "$DISTRIBUTION" = "oss" ]]; then
-  DISTRIBUTION_SUFFIX="-oss"
-else
-  DISTRIBUTION_SUFFIX=""
-fi
+case "${DISTRIBUTION}" in
+  default) DISTRIBUTION_SUFFIX="" ;; # empty string when explicit "default" is given
+        *) DISTRIBUTION_SUFFIX="${DISTRIBUTION/*/-}${DISTRIBUTION}" ;;
+esac
+export DISTRIBUTION_SUFFIX
 
 echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
