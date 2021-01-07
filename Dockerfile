@@ -14,8 +14,8 @@ ENV DISTRIBUTION=$DISTRIBUTION
 # INTEGRATION="true" while integration testing (false-y by default)
 ARG INTEGRATION
 ENV INTEGRATION=$INTEGRATION
-RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
+RUN .ci/setup.sh
+RUN gem install bundler -v '< 2'
 RUN bundle install --with test ci
 RUN bundle exec rake vendor
-RUN .ci/setup.sh
