@@ -9,7 +9,9 @@ RUN usermod -aG wheel logstash && \
     echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
 USER logstash
-COPY --chown=logstash:logstash . /usr/share/plugins/plugin/
+# whole . plugin code could be copied here but we only do that later, after bundle install,
+# to speedup incremental image builds (locally one's mostly changing lib/ and spec/ files)
+COPY --chown=logstash:logstash Gemfile *.gemspec VERSION* version* /usr/share/plugins/plugin/
 RUN cp /usr/share/logstash/logstash-core/versions-gem-copy.yml /usr/share/logstash/versions.yml
 # NOTE: since 8.0 JDK is bundled as part of the LS distribution under $LS_HOME/jdk
 ENV PATH="${PATH}:/usr/share/logstash/vendor/jruby/bin:/usr/share/logstash/jdk/bin"
@@ -25,4 +27,5 @@ WORKDIR /usr/share/plugins/plugin
 RUN .ci/setup.sh
 RUN gem install bundler -v '< 2'
 RUN bundle install --with test ci
+COPY --chown=logstash:logstash . /usr/share/plugins/plugin/
 RUN bundle exec rake vendor
