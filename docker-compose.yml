@@ -17,4 +17,6 @@ services:
     environment:
       - SPEC_OPTS
       - LOG_LEVEL # devutils (>= 2.0.4) reads the ENV and sets LS logging
+      - CI # CI=true in Travis-CI
+      - TRAVIS # TRAVIS=true in Travis-CI
     tty: true
