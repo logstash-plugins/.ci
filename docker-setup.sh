@@ -4,6 +4,13 @@
 # Ensure you have Docker installed locally and set the ELASTIC_STACK_VERSION environment variable.
 set -e
 
+pull_docker_snapshot() {
+  project="${1?project name required}"
+  local docker_image="docker.elastic.co/${project}/${project}${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_VERSION}"
+  echo "Pulling $docker_image"
+  docker pull "$docker_image"
+}
+
 VERSION_URL="https://raw.githubusercontent.com/elastic/logstash/main/ci/logstash_releases.json"
 
 if [ -z "${ELASTIC_STACK_VERSION}" ]; then
@@ -30,27 +37,16 @@ if [[ "$ELASTIC_STACK_RETRIEVED_VERSION" != "null" ]]; then
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
 fi
 
-if [[ "$DISTRIBUTION" = "oss" ]]; then
-  DISTRIBUTION_SUFFIX="-oss"
-else
-  DISTRIBUTION_SUFFIX=""
-fi
+case "${DISTRIBUTION}" in
+  default) DISTRIBUTION_SUFFIX="" ;; # empty string when explicit "default" is given
+        *) DISTRIBUTION_SUFFIX="${DISTRIBUTION/*/-}${DISTRIBUTION}" ;;
+esac
+export DISTRIBUTION_SUFFIX
 
 echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
 if [[ "$ELASTIC_STACK_VERSION" = *"-SNAPSHOT" ]]; then
-    cd /tmp
-
-    jq=".build.projects.\"logstash\".packages.\"logstash$DISTRIBUTION_SUFFIX-$ELASTIC_STACK_VERSION-docker-image.tar.gz\".url"
-    result=$(curl --silent https://artifacts-api.elastic.co/v1/versions/$ELASTIC_STACK_VERSION/builds/latest | jq -r $jq)
-    echo $result
-    curl $result > logstash-docker-image.tar.gz
-    tar xfvz logstash-docker-image.tar.gz repositories
-    echo "Loading docker image: "
-    cat repositories
-    docker load < logstash-docker-image.tar.gz
-    rm logstash-docker-image.tar.gz
-    cd -
+    pull_docker_snapshot "logstash"
 fi
 
 if [ -f Gemfile.lock ]; then
