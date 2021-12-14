@@ -4,9 +4,14 @@ FROM docker.elastic.co/logstash/logstash${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_V
 # install and enable password-less sudo for logstash user
 # allows modifying the system inside the container (using the .ci/setup.sh hook)
 USER root
-RUN if [ $(command -v apt-get) ]; then apt-get install -y sudo; else yum install -y sudo; fi
-RUN usermod -aG wheel logstash && \
-    echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
+RUN if [ $(command -v apt-get) ]; then \
+      apt-get install -y sudo && \
+      gpasswd -a logstash sudo; \
+    else \
+      yum install -y sudo && \
+      usermod -aG wheel logstash; \
+    fi
+RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
 USER logstash
 # whole . plugin code could be copied here but we only do that after bundle install,
