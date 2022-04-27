@@ -13,7 +13,7 @@ services:
         - DISTRIBUTION=${DISTRIBUTION:-default}
         #- INTEGRATION=false
     command: .ci/run.sh
-    env_file: docker.env
+    env_file: ${DOCKER_ENV:-docker.env}
     environment:
       - SPEC_OPTS
       - LOG_LEVEL # devutils (>= 2.0.4) reads the ENV and sets LS logging
