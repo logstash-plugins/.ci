@@ -17,7 +17,6 @@ env:
   jobs:
     - ELASTIC_STACK_VERSION=8.x
     - ELASTIC_STACK_VERSION=7.x
-    - ELASTIC_STACK_VERSION=6.x
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.x
     - SNAPSHOT=true ELASTIC_STACK_VERSION=7.x
 
@@ -25,8 +24,6 @@ jobs:
 - stage: Performance
   name: Performance Base-Line
   <<: *_performance
-  env: ELASTIC_STACK_VERSION=6.x
-- <<: *_performance
   env: ELASTIC_STACK_VERSION=7.x
 - <<: *_performance
   env: ELASTIC_STACK_VERSION=8.x
