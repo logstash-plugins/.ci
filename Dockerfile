@@ -12,7 +12,7 @@ RUN if [ $(command -v apt-get) ]; then \
       usermod -aG wheel logstash; \
     fi
 RUN if [ $(command -v apt-get) ]; then \
-      apt-get install shared-mime-info \
+      apt-get install -y shared-mime-info \
     else \
       yum install -y shared-mime-info \
     fi    
