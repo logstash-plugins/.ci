@@ -11,6 +11,11 @@ RUN if [ $(command -v apt-get) ]; then \
       yum install -y sudo && \
       usermod -aG wheel logstash; \
     fi
+RUN if [ $(command -v apt-get) ]; then \
+      apt-get install shared-mime-info \
+    else \
+      yum install -y shared-mime-info \
+    fi    
 RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
 USER logstash
