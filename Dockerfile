@@ -12,9 +12,9 @@ RUN if [ $(command -v apt-get) ]; then \
       usermod -aG wheel logstash; \
     fi
 RUN if [ $(command -v apt-get) ]; then \
-      apt-get install -y shared-mime-info \
+      apt-get install -y shared-mime-info; \
     else \
-      yum install -y shared-mime-info \
+      yum install -y shared-mime-info; \
     fi    
 RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
