@@ -1,4 +1,5 @@
 ARG ELASTIC_STACK_VERSION
+ARG ELASTICSEARCH_TREEISH
 ARG DISTRIBUTION_SUFFIX
 FROM docker.elastic.co/logstash/logstash${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_VERSION}
 # install and enable password-less sudo for logstash user
