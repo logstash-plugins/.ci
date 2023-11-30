@@ -10,7 +10,7 @@ services:
       dockerfile: .ci/Dockerfile
       args:
         - ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
-        - DISTRIBUTION=${DISTRIBUTION:-default}
+        - DISTRIBUTION_SUFFIX=${DISTRIBUTION_SUFFIX:-}
         #- INTEGRATION=false
     command: .ci/run.sh
     env_file: ${DOCKER_ENV:-docker.env}
