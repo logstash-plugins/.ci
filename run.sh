@@ -5,4 +5,4 @@ env
 
 set -ex
 
-jruby -rbundler/setup -S rspec -fd
+bundle exec rspec --format=documentation
