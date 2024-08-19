@@ -9,4 +9,4 @@ cd .ci
 
 export BUILDKIT_PROGRESS=plain
 # docker will look for: "./docker-compose.yml" (and "./docker-compose.override.yml")
-docker-compose up --exit-code-from logstash
+docker compose up --exit-code-from logstash

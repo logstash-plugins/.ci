@@ -58,5 +58,5 @@ CURRENT_DIR=$(dirname "${BASH_SOURCE[0]}")
 cd .ci
 
 export BUILDKIT_PROGRESS=plain
-docker-compose down
-docker-compose build
+docker compose down
+docker compose build
