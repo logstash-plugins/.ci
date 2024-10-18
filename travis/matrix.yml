@@ -15,9 +15,12 @@ stages:
 
 env:
   jobs:
-    - ELASTIC_STACK_VERSION=8.x DOCKER_ENV=dockerjdk21.env
+    - ELASTIC_STACK_VERSION=8.current DOCKER_ENV=dockerjdk21.env
+    - ELASTIC_STACK_VERSION=8.previous DOCKER_ENV=dockerjdk21.env
     - ELASTIC_STACK_VERSION=7.x
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.x DOCKER_ENV=dockerjdk21.env
+    - SNAPSHOT=true ELASTIC_STACK_VERSION=8.current DOCKER_ENV=dockerjdk21.env
+    - SNAPSHOT=true ELASTIC_STACK_VERSION=8.previous DOCKER_ENV=dockerjdk21.env
     - SNAPSHOT=true ELASTIC_STACK_VERSION=7.x
 
 jobs:
@@ -26,6 +29,8 @@ jobs:
   <<: *_performance
   env: ELASTIC_STACK_VERSION=7.x
 - <<: *_performance
-  env: ELASTIC_STACK_VERSION=8.x DOCKER_ENV=dockerjdk21.env
+  env: ELASTIC_STACK_VERSION=8.current DOCKER_ENV=dockerjdk21.env
+- <<: *_performance
+  env: ELASTIC_STACK_VERSION=8.previous DOCKER_ENV=dockerjdk21.env
 - <<: *_performance
   env: SNAPSHOT=true ELASTIC_STACK_VERSION=8.x DOCKER_ENV=dockerjdk21.env
