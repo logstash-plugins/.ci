@@ -12,14 +12,12 @@ pull_docker_snapshot() {
     echo "docker pull successful"
   else
     case "$ELASTIC_STACK_VERSION_ARG" in
-     "8.previous"|"8.current"|"8.next")
-     echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build, skipping."
-     exit 0
-     ;;
-     *)
-     echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist, failing the build.."
-     exit 1
-     ;;
+      "8.previous"|"8.current"|"8.next")
+        exit 1
+        ;;
+      *)
+        exit 2
+        ;;
     esac
   fi
 }

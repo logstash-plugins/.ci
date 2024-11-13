@@ -1,4 +1,30 @@
 before_install:
   - mkdir -p .ci && curl -sL https://github.com/logstash-plugins/.ci/archive/1.x.tar.gz | tar zxvf - --skip-old-files --strip-components=1 -C .ci --wildcards "*Dockerfile*" "*docker*" "*.sh"
-install: .ci/docker-setup.sh
-script: .ci/docker-run.sh
+install:
+  - .ci/docker-setup.sh
+  - exit_code=$?
+  - |
+    case $exit_code in
+      0)
+        echo "Install succeeded."
+        ;;
+      1)
+        echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
+        export SKIP_SCRIPT=true
+        ;;
+      2)
+        echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist. Aborting build."
+        exit $exit_code
+        ;;
+      *)
+        echo "Install failed with an unexpected code: $exit_code. Stopping build."
+        exit $exit_code
+        ;;
+    esac
+script:
+  - |
+    if [ "$SKIP_SCRIPT" = "true" ]; then
+      exit 0
+    else
+      .ci/docker-run.sh
+    fi
