@@ -20,7 +20,7 @@ if [ -z "${ELASTIC_STACK_VERSION}" ]; then
 fi
 
 echo "Fetching versions from $VERSION_URL"
-VERSIONS=$(curl $VERSION_URL)
+VERSIONS=$(curl -s $VERSION_URL)
 
 if [[ "$SNAPSHOT" = "true" ]]; then
   ELASTIC_STACK_RETRIEVED_VERSION=$(echo $VERSIONS | jq '.snapshots."'"$ELASTIC_STACK_VERSION"'"')
@@ -35,6 +35,9 @@ if [[ "$ELASTIC_STACK_RETRIEVED_VERSION" != "null" ]]; then
   ELASTIC_STACK_RETRIEVED_VERSION="${ELASTIC_STACK_RETRIEVED_VERSION#\"}"
   echo "Translated $ELASTIC_STACK_VERSION to ${ELASTIC_STACK_RETRIEVED_VERSION}"
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
+elif [[ "$ELASTIC_STACK_VERSION" == "8.next" ]]; then
+  # we know "8.next" only exists between FF and GA of a minor
+  exit 0
 fi
 
 case "${DISTRIBUTION}" in
