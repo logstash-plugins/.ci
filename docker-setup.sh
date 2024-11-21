@@ -4,13 +4,13 @@
 # Ensure you have Docker installed locally and set the ELASTIC_STACK_VERSION environment variable.
 set -e
 
-pull_docker_snapshot() {
+check_docker_snapshot() {
   project="${1?project name required}"
   stack_version_alias="${2?stack version alias required}"
   local docker_image="docker.elastic.co/${project}/${project}${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_VERSION}"
-  echo "Pulling $docker_image"
-  if docker pull "$docker_image" ; then
-    echo "docker pull successful"
+  echo "Checking manifest for $docker_image"
+  if docker manifest inspect "$docker_image" ; then
+    echo "docker image exists. proceeding..."
   else
     case $stack_version_alias in
       "8.previous"|"8.current"|"8.next")
@@ -65,7 +65,7 @@ export DISTRIBUTION_SUFFIX
 echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
 if [[ "$ELASTIC_STACK_VERSION" = *"-SNAPSHOT" ]]; then
-    pull_docker_snapshot "logstash" $ELASTIC_STACK_VERSION_ALIAS
+    check_docker_snapshot "logstash" $ELASTIC_STACK_VERSION_ALIAS
 fi
 
 if [ -f Gemfile.lock ]; then
