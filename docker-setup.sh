@@ -13,7 +13,7 @@ pull_docker_snapshot() {
     echo "docker pull successful"
   else
     case $stack_version_alias in
-      "8.previous"|"8.current"|"8.next")
+      "8.previous"|"8.current"|"8.next"|"8.future")
         exit 1
         ;;
       *)
