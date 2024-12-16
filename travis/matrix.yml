@@ -20,7 +20,6 @@ env:
     - ELASTIC_STACK_VERSION=7.current
     - SNAPSHOT=true ELASTIC_STACK_VERSION=main DOCKER_ENV=dockerjdk21.env
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.future DOCKER_ENV=dockerjdk21.env
-    - SNAPSHOT=true ELASTIC_STACK_VERSION=8.next DOCKER_ENV=dockerjdk21.env
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.current DOCKER_ENV=dockerjdk21.env
     - SNAPSHOT=true ELASTIC_STACK_VERSION=8.previous DOCKER_ENV=dockerjdk21.env
     - SNAPSHOT=true ELASTIC_STACK_VERSION=7.current
