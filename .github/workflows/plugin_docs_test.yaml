@@ -30,6 +30,6 @@ jobs:
           path: logstash-docs
       - name: copy plugin doc entry to logstash-docs
         run: |
-          cp plugin/docs/index.asciidoc "logstash-docs/docs/plugin/$(awk -F': ' '/:type:/{t=$2}/:plugin:/{p=$2} END{print t "s/" p}' plugin/docs/index.asciidoc).asciidoc"
+          cp plugin/docs/index.asciidoc "logstash-docs/docs/plugins/$(awk -F': ' '/:type:/{t=$2}/:plugin:/{p=$2} END{print t "s/" p}' plugin/docs/index.asciidoc).asciidoc"
       - name: Build docs
         run: ./docs/build_docs --respect_edit_url_overrides --doc logstash/docs/index.asciidoc --resource=logstash-docs/docs/ --chunk 1
