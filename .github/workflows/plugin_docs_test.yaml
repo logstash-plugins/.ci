@@ -6,7 +6,7 @@ on:
       - 'docs/**/*'
 jobs:
   build_docs:
-    #if: github.repository != 'logstash-plugins/.ci'
+    if: github.repository != 'logstash-plugins/.ci'
     runs-on: ubuntu-latest
     steps:
       - name: Check out plugin code
