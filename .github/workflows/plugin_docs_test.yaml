@@ -2,11 +2,13 @@ name: Test plugin docs
 on:
   workflow_call:
   pull_request:
+    paths:
+      - 'docs/**/*'
 jobs:
-  Explore-GitHub-Actions:
+  build_docs:
+    if: github.repository != 'logstash-plugins/.ci'
     runs-on: ubuntu-latest
     steps:
-      - run: ls -lha .
       - name: Check out plugin code
         uses: actions/checkout@v4
         with:
