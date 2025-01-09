@@ -1,0 +1,32 @@
+name: Test plugin docs
+on:
+  workflow_call:
+jobs:
+  Explore-GitHub-Actions:
+    runs-on: ubuntu-latest
+    steps:
+      - run: ls -lha .
+      - name: Check out plugin code
+        uses: actions/checkout@v4
+        with:
+          path: plugin
+      - name: Checkout docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: elastic/docs
+          path: docs
+      - name: Checkout logstash repo
+        uses: actions/checkout@v4
+        with:
+          repository: elastic/logstash
+          path: logstash
+      - name: Checkout logstash-docs repo
+        uses: actions/checkout@v4
+        with:
+          repository: elastic/logstash-docs
+          path: logstash-docs
+      - name: copy plugin doc entry to logstash-docs
+        run: |
+          cp plugin/docs/index.asciidoc "logstash-docs/docs/plugins/inputs/$(awk -F': ' '/:plugin:/{print $2}' plugin/docs/index.asciidoc).asciidoc"
+      - name: Build docs
+        run: ./docs/build_docs --respect_edit_url_overrides --doc logstash/docs/index.asciidoc --resource=logstash-docs/docs/ --chunk 1
