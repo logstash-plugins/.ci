@@ -14,9 +14,9 @@ RUN if [ $(command -v apt-get) ]; then \
     fi
 RUN if [ $(command -v apt-get) ]; then \
       apt-get update -y --fix-missing && \
-      apt-get install -y shared-mime-info; \
+      apt-get install -y jq shared-mime-info; \
     else \
-      microdnf install -y shared-mime-info; \
+      microdnf install -y jq shared-mime-info; \
     fi
 RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
