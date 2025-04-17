@@ -22,13 +22,14 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: elastic/logstash
-          ref: 8.x # test on 8.x until we find how to test with the new docs system
+          ref: 8.19 # test on 8.19 until we find how to test with the new docs system
           path: logstash
       - name: Checkout logstash-docs repo
         uses: actions/checkout@v4
         with:
           repository: elastic/logstash-docs
           path: logstash-docs
+          ref: 8.19
       - name: copy plugin doc entry to logstash-docs
         run: |
           cp plugin/docs/index.asciidoc "logstash-docs/docs/plugins/$(awk -F': ' '/:type:/{t=$2}/:plugin:/{p=$2} END{print t "s/" p}' plugin/docs/index.asciidoc).asciidoc"
