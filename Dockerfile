@@ -37,7 +37,7 @@ ENV DISTRIBUTION=$DISTRIBUTION
 # INTEGRATION="true" while integration testing (false-y by default)
 ARG INTEGRATION
 ENV INTEGRATION=$INTEGRATION
-RUN gem install bundler -v '~> 2'
+RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
 COPY --chown=logstash:logstash .ci/* /usr/share/plugins/plugin/.ci/
 RUN .ci/setup.sh
