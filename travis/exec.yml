@@ -8,13 +8,13 @@ install:
       0)
         echo "Install succeeded."
         ;;
-      1)
-        echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
-        export SKIP_SCRIPT=true
-        ;;
       2)
         echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist. Aborting build."
         exit $exit_code
+        ;;
+      99)
+        echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
+        export SKIP_SCRIPT=true
         ;;
       *)
         echo "Install failed with an unexpected code: $exit_code. Stopping build."
