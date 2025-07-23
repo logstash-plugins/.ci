@@ -4,14 +4,26 @@
 # Ensure you have Docker installed locally and set the ELASTIC_STACK_VERSION environment variable.
 set -e
 
-pull_docker_snapshot() {
+check_docker_snapshot() {
   project="${1?project name required}"
+  stack_version_alias="${2?stack version alias required}"
   local docker_image="docker.elastic.co/${project}/${project}${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_VERSION}"
-  echo "Pulling $docker_image"
-  docker pull "$docker_image"
+  echo "Checking manifest for $docker_image"
+  if docker manifest inspect "$docker_image" ; then
+    echo "docker image exists. proceeding..."
+  else
+    case $stack_version_alias in
+      "8.previous"|"8.current"|"8.next"|"8.future")
+        exit 99
+        ;;
+      *)
+        exit 2
+        ;;
+    esac
+  fi
 }
 
-VERSION_URL="https://raw.githubusercontent.com/elastic/logstash/master/ci/logstash_releases.json"
+VERSION_URL="https://raw.githubusercontent.com/elastic/logstash/main/ci/logstash_releases.json"
 
 if [ -z "${ELASTIC_STACK_VERSION}" ]; then
     echo "Please set the ELASTIC_STACK_VERSION environment variable"
@@ -19,8 +31,11 @@ if [ -z "${ELASTIC_STACK_VERSION}" ]; then
     exit 1
 fi
 
+# The ELASTIC_STACK_VERSION may be an alias, save the original before translating it
+ELASTIC_STACK_VERSION_ALIAS="$ELASTIC_STACK_VERSION"
+
 echo "Fetching versions from $VERSION_URL"
-VERSIONS=$(curl $VERSION_URL)
+VERSIONS=$(curl -s $VERSION_URL)
 
 if [[ "$SNAPSHOT" = "true" ]]; then
   ELASTIC_STACK_RETRIEVED_VERSION=$(echo $VERSIONS | jq '.snapshots."'"$ELASTIC_STACK_VERSION"'"')
@@ -35,6 +50,10 @@ if [[ "$ELASTIC_STACK_RETRIEVED_VERSION" != "null" ]]; then
   ELASTIC_STACK_RETRIEVED_VERSION="${ELASTIC_STACK_RETRIEVED_VERSION#\"}"
   echo "Translated $ELASTIC_STACK_VERSION to ${ELASTIC_STACK_RETRIEVED_VERSION}"
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
+elif [[ "$ELASTIC_STACK_VERSION" == "8.next" ]]; then
+  # we know "8.next" only exists between FF and GA of a minor
+  # exit 99 so the build is skipped
+  exit 99
 fi
 
 case "${DISTRIBUTION}" in
@@ -46,7 +65,7 @@ export DISTRIBUTION_SUFFIX
 echo "Testing against version: $ELASTIC_STACK_VERSION (distribution: ${DISTRIBUTION:-"default"})"
 
 if [[ "$ELASTIC_STACK_VERSION" = *"-SNAPSHOT" ]]; then
-    pull_docker_snapshot "logstash"
+    check_docker_snapshot "logstash" $ELASTIC_STACK_VERSION_ALIAS
 fi
 
 if [ -f Gemfile.lock ]; then

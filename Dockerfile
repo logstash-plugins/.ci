@@ -4,19 +4,20 @@ FROM docker.elastic.co/logstash/logstash${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_V
 # install and enable password-less sudo for logstash user
 # allows modifying the system inside the container (using the .ci/setup.sh hook)
 USER root
+# use "apt-get" for 7.x and 8.x images based on ubuntu 20 and "microdnf" for 9.x images based on ubi8-minimal
 RUN if [ $(command -v apt-get) ]; then \
       apt-get update -y && apt-get install -y sudo && \
       gpasswd -a logstash sudo; \
     else \
-      yum install -y sudo && \
+      microdnf install -y sudo && \
       usermod -aG wheel logstash; \
     fi
 RUN if [ $(command -v apt-get) ]; then \
       apt-get update -y --fix-missing && \
-      apt-get install -y shared-mime-info; \
+      apt-get install -y jq shared-mime-info; \
     else \
-      yum install -y shared-mime-info; \
-    fi    
+      microdnf install -y jq shared-mime-info; \
+    fi
 RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
 USER logstash
@@ -28,6 +29,8 @@ RUN cp /usr/share/logstash/logstash-core/versions-gem-copy.yml /usr/share/logsta
 ENV PATH="${PATH}:/usr/share/logstash/vendor/jruby/bin:/usr/share/logstash/jdk/bin"
 ENV LOGSTASH_SOURCE="1"
 ENV ELASTIC_STACK_VERSION=$ELASTIC_STACK_VERSION
+ARG ELASTICSEARCH_TREEISH
+ENV ELASTICSEARCH_TREEISH=$ELASTICSEARCH_TREEISH
 # DISTRIBUTION="default" (by default) or "oss"
 ARG DISTRIBUTION
 ENV DISTRIBUTION=$DISTRIBUTION
