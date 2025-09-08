@@ -26,5 +26,5 @@ script:
     if [ "$SKIP_SCRIPT" = "true" ]; then
       exit 0
     else
-      .ci/docker-run.sh
+      travis_wait 30 .ci/docker-run.sh
     fi
