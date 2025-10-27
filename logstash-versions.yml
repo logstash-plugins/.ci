@@ -2,15 +2,15 @@
 releases:
   7.current: "7.17.29"
   8.previous: "8.18.8"
-  8.current: "8.19.5"
-  9.previous: "9.0.8"
-  9.current: "9.1.5"
+  8.current: "8.19.6"
+  9.previous: "9.1.6"
+  9.current: "9.2.0"
 
 # Track the ongoing SNAPSHOT for the "next" release for each stream
 snapshots:
   7.current: "7.17.30-SNAPSHOT"
   8.previous: "8.18.9-SNAPSHOT"
   8.current: "8.19.6-SNAPSHOT"
-  9.previous: "9.0.9-SNAPSHOT"
-  9.current: "9.1.6-SNAPSHOT"
-  main: "9.2.0-SNAPSHOT"
+  9.previous: "9.1.7-SNAPSHOT"
+  9.current: "9.2.1-SNAPSHOT"
+  main: "9.3.0-SNAPSHOT"
