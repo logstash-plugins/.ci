@@ -41,3 +41,29 @@ and then rebuild the image:
 ```
 .ci/docker-setup.sh && .ci/docker-run.sh
 ```
+
+## add-scripts-to-current-plugin.sh
+
+Bootstrap this repo's `.ci` assets into a Logstash plugin repository from your local checkout.
+
+### Prerequisites
+
+- `yq` must be installed (used to read `travis/exec.yml`). For macOS with Homebrew:
+  ```
+  brew install yq
+  ```
+- `curl` and `tar` available in your shell.
+
+### Usage
+
+1. Change directory to the root of your plugin (must contain a `logstash-*.gemspec`).
+2. Run the script from this repo:
+   ```
+   /path/to/logstash-plugins/.ci/add-scripts-to-current-plugin.sh
+   ```
+
+### What it does
+
+- 
+
+If `yq` is not installed or `travis/exec.yml` cannot be found, the script will exit with an error message.
