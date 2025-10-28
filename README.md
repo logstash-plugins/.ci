@@ -42,9 +42,13 @@ and then rebuild the image:
 .ci/docker-setup.sh && .ci/docker-run.sh
 ```
 
-## add-scripts-to-current-plugin.sh
+## Running docker containers locally for plugins
 
-Bootstrap this repo's `.ci` assets into a Logstash plugin repository from your local checkout.
+Run `path/to/this/repo/add-scripts-to-current-plugin.sh` from within your plugin root to
+unpack the published scripts into your plugin in the same way CI would.
+
+Then, you can run `docker-setup.sh` and `docker-run.sh` to actually run the tests. You likely
+will want to set environment variables from the plugin's `travis.yml` before running `docker-run.sh`.
 
 ### Prerequisites
 
@@ -53,17 +57,3 @@ Bootstrap this repo's `.ci` assets into a Logstash plugin repository from your l
   brew install yq
   ```
 - `curl` and `tar` available in your shell.
-
-### Usage
-
-1. Change directory to the root of your plugin (must contain a `logstash-*.gemspec`).
-2. Run the script from this repo:
-   ```
-   /path/to/logstash-plugins/.ci/add-scripts-to-current-plugin.sh
-   ```
-
-### What it does
-
-- 
-
-If `yq` is not installed or `travis/exec.yml` cannot be found, the script will exit with an error message.
