@@ -41,3 +41,19 @@ and then rebuild the image:
 ```
 .ci/docker-setup.sh && .ci/docker-run.sh
 ```
+
+## Running docker containers locally for plugins
+
+Run `path/to/this/repo/add-scripts-to-current-plugin.sh` from within your plugin root to
+unpack the published scripts into your plugin in the same way CI would.
+
+Then, you can run `docker-setup.sh` and `docker-run.sh` to actually run the tests. You likely
+will want to set environment variables from the plugin's `travis.yml` before running `docker-run.sh`.
+
+### Prerequisites
+
+- `yq` must be installed (used to read `travis/exec.yml`). For macOS with Homebrew:
+  ```
+  brew install yq
+  ```
+- `curl` and `tar` available in your shell.
