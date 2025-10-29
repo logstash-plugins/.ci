@@ -14,3 +14,12 @@ snapshots:
   9.previous: "9.1.7-SNAPSHOT"
   9.current: "9.2.1-SNAPSHOT"
   main: "9.3.0-SNAPSHOT"
+
+# Mapping from Logstash branch names to stream keys
+logstash-streams:
+  "main": "main"
+  "9.2": "9.current"
+  "9.1": "9.previous"
+  "8.19": "8.current"
+  "8.18": "8.previous"
+  "7.17": "7.current"
