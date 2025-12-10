@@ -95,14 +95,22 @@ runs:
       shell: bash {0}
       run: |
         set +e
-        bash .ci/docker-setup.sh
+        .ci/docker-setup.sh
         exit_code=$?
-
-        if [ ${exit_code} -eq 99 ]; then
-          echo "skip=true" >> $GITHUB_OUTPUT
-          echo "::notice::Test skipped - Docker image not available for this configuration"
-          exit 0
-        elif [ ${exit_code} -ne 0 ]; then
-          echo "::error::Docker setup failed with exit code ${exit_code}"
-          exit ${exit_code}
-        fi
+        case $exit_code in
+          0)
+            echo "Install succeeded."
+            ;;
+          2)
+            echo "::error::Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist. Aborting build."
+            exit $exit_code
+            ;;
+          99)
+            echo "::notice::Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "::error::Install failed with an unexpected code: $exit_code. Stopping build."
+            exit $exit_code
+            ;;
+        esac
