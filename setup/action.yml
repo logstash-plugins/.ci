@@ -2,14 +2,14 @@ name: 'Setup Test Environment'
 description: 'Common setup steps for unit, integration and secure integration tests'
 
 inputs:
-  elastic_stack_version:
+  elastic-stack-version:
     description: 'Elasticsearch stack version to test against'
     required: true
   snapshot:
     description: 'Whether to use snapshot version'
     required: false
     default: 'false'
-  docker_env:
+  docker-env:
     description: 'Docker environment file (e.g., dockerjdk21.env)'
     required: false
     default: ''
@@ -17,15 +17,15 @@ inputs:
     description: 'Enable integration testing'
     required: false
     default: 'false'
-  secure_integration:
+  secure-integration:
     description: 'Enable secure integration testing'
     required: false
     default: 'false'
-  es_ssl_key_invalid:
+  es-ssl-key-invalid:
     description: 'Use invalid SSL key for testing'
     required: false
     default: 'false'
-  es_ssl_supported_protocols:
+  es-ssl-supported-protocols:
     description: 'SSL/TLS protocols to test'
     required: false
     default: ''
@@ -41,13 +41,13 @@ runs:
     - name: Set up environment variables
       shell: bash
       env:
-        ELASTIC_STACK_VERSION: ${{ inputs.elastic_stack_version }}
+        ELASTIC_STACK_VERSION: ${{ inputs.elastic-stack-version }}
         SNAPSHOT: ${{ inputs.snapshot }}
-        DOCKER_ENV: ${{ inputs.docker_env }}
+        DOCKER_ENV: ${{ inputs.docker-env }}
         INTEGRATION: ${{ inputs.integration }}
-        SECURE_INTEGRATION: ${{ inputs.secure_integration }}
-        ES_SSL_KEY_INVALID: ${{ inputs.es_ssl_key_invalid }}
-        ES_SSL_SUPPORTED_PROTOCOLS: ${{ inputs.es_ssl_supported_protocols }}
+        SECURE_INTEGRATION: ${{ inputs.secure-integration }}
+        ES_SSL_KEY_INVALID: ${{ inputs.es-ssl-key-invalid }}
+        ES_SSL_SUPPORTED_PROTOCOLS: ${{ inputs.es-ssl-supported-protocols }}
       run: |
         echo "LOG_LEVEL=info" >> $GITHUB_ENV
         echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}" >> $GITHUB_ENV

@@ -13,5 +13,5 @@ jobs:
 
       - uses: ./setup
         with:
-          elastic_stack_version: "9.current"
+          elastic-stack-version: "9.current"
           snapshot: false

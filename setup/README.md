@@ -12,13 +12,13 @@ Common setup steps for unit, integration and secure integration tests
 <!--inputs-->
 | Name                         | Description                                     | Required | Default |
 |------------------------------|-------------------------------------------------|----------|---------|
-| `elastic_stack_version`      | Elasticsearch stack version to test against     | `true`   | ` `     |
+| `elastic-stack-version`      | Elasticsearch stack version to test against     | `true`   | ` `     |
 | `snapshot`                   | Whether to use snapshot version                 | `false`  | `false` |
-| `docker_env`                 | Docker environment file (e.g., dockerjdk21.env) | `false`  | ` `     |
+| `docker-env`                 | Docker environment file (e.g., dockerjdk21.env) | `false`  | ` `     |
 | `integration`                | Enable integration testing                      | `false`  | `false` |
-| `secure_integration`         | Enable secure integration testing               | `false`  | `false` |
-| `es_ssl_key_invalid`         | Use invalid SSL key for testing                 | `false`  | `false` |
-| `es_ssl_supported_protocols` | SSL/TLS protocols to test                       | `false`  | ` `     |
+| `secure-integration`         | Enable secure integration testing               | `false`  | `false` |
+| `es-ssl-key-invalid`         | Use invalid SSL key for testing                 | `false`  | `false` |
+| `es-ssl-supported-protocols` | SSL/TLS protocols to test                       | `false`  | ` `     |
 <!--/inputs-->
 
 ## Outputs
