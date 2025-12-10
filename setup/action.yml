@@ -92,7 +92,7 @@ runs:
 
     - name: Run docker-setup.sh
       id: docker_setup
-      shell: bash
+      shell: bash {0}
       run: |
         set +e
         bash .ci/docker-setup.sh
@@ -103,6 +103,7 @@ runs:
           echo "skip=true" >> $GITHUB_OUTPUT
           echo "::notice::Test skipped - Docker image not available for this configuration"
           exit 0
+        elif [ ${exit_code} -ne 0 ]; then
+          echo "::error::Docker setup failed with exit code ${exit_code}"
+          exit ${exit_code}
         fi
-        echo "::error::Docker setup failed with exit code ${exit_code}"
-        exit ${exit_code}
