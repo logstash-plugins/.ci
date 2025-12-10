@@ -95,7 +95,7 @@ runs:
       shell: bash
       run: |
         exit_code=0
-        bash .ci/docker-setup.sh || exit_code=$?
+        .ci/docker-setup.sh || exit_code=$?
 
         if [ ${exit_code} -eq 99 ]; then
           echo "skip=true" >> $GITHUB_OUTPUT
