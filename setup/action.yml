@@ -94,18 +94,12 @@ runs:
       id: docker_setup
       shell: bash
       run: |
+        set +e
         bash .ci/docker-setup.sh
-        echo "exit_code=$?" >> $GITHUB_OUTPUT
-      continue-on-error: true
-
-    - name: Check if test should be skipped
-      id: check_skip
-      if: steps.docker_setup.outcome == 'failure'
-      shell: bash
-      run: |
-        if [ ${{ steps.docker_setup.outputs.exit_code }} -eq 99 ]; then
+        exit_code=$?
+        if [ ${exit_code} -eq 99 ]; then
           echo "skip=true" >> $GITHUB_OUTPUT
           echo "Test skipped - Docker image not available for this configuration"
         else
-          exit 1
+          exit $exit_code
         fi
