@@ -3,7 +3,10 @@ name: test-setup
 on:
   pull_request:
     branches:
-      - main
+      - "1.x"
+  push:
+    branches:
+      - feature/github-actions
 
 jobs:
   test-setup-action:
