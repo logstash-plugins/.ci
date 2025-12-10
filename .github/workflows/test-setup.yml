@@ -12,6 +12,11 @@ jobs:
       - uses: actions/checkout@v6
 
       - uses: ./setup
+        id: setup
+        continue-on-error: true
         with:
           elastic-stack-version: "9.current"
           snapshot: false
+
+      - name: Assert is failure (setup action)
+        run: test "${{steps.setup.outcome}}" = "failure"
