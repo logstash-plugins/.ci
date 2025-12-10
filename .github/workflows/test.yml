@@ -1,0 +1,66 @@
+name: Test
+
+on:
+  workflow_call:
+
+jobs:
+  test:
+    name: Test - ES ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' (Snapshot)' || '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        elastic-stack-version:
+          - '9.current'
+          - '9.previous'
+          - '8.current'
+          - '8.previous'
+          - '7.current'
+          - 'main'
+          - '9.next'
+        snapshot: [false, true]
+        docker-env: ['dockerjdk21.env']
+        exclude:
+          # Release versions - exclude snapshots
+          - elastic-stack-version: '9.current'
+            snapshot: true
+          - elastic-stack-version: '9.previous'
+            snapshot: true
+          - elastic-stack-version: '8.current'
+            snapshot: true
+          - elastic-stack-version: '8.previous'
+            snapshot: true
+          - elastic-stack-version: '7.current'
+            snapshot: true
+          # Snapshot versions - exclude releases
+          - elastic-stack-version: 'main'
+            snapshot: false
+          - elastic-stack-version: '9.next'
+            snapshot: false
+          # 7.current doesn't use JDK 21
+          - elastic-stack-version: '7.current'
+            docker-env: 'dockerjdk21.env'
+        include:
+          # Add 7.current with default docker-env for both release and snapshot
+          - elastic-stack-version: '7.current'
+            snapshot: false
+            docker-env: ''
+          - elastic-stack-version: '7.current'
+            snapshot: true
+            docker-env: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup test environment
+        id: setup
+        uses: logstash-plugins/.ci/setup@feature/github-actions
+        with:
+          elastic-stack-version: ${{ matrix.elastic-stack-version }}
+          snapshot: ${{ matrix.snapshot }}
+          docker-env: ${{ matrix.docker-env }}
+
+      - name: Run tests
+        if: steps.setup.outputs.skip != 'true'
+        run: bash .ci/docker-run.sh
