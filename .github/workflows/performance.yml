@@ -1,0 +1,61 @@
+name: performance
+
+on:
+  workflow_call:
+
+jobs:
+  performance:
+    name: Performance - ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
+    # Only run performance tests if HAS_PERFORMANCE_TESTS is set to 1
+    if: vars.HAS_PERFORMANCE_TESTS == '1'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Performance Base-Line
+          - elastic-stack-version: "7.current"
+            docker-env: ""
+            snapshot: false
+          # Release versions with JDK 21
+          - elastic-stack-version: "8.current"
+            docker-env: "dockerjdk21.env"
+            snapshot: false
+          - elastic-stack-version: "8.previous"
+            docker-env: "dockerjdk21.env"
+            snapshot: false
+          - elastic-stack-version: "9.current"
+            docker-env: "dockerjdk21.env"
+            snapshot: false
+          - elastic-stack-version: "9.previous"
+            docker-env: "dockerjdk21.env"
+            snapshot: false
+          # Snapshot versions with JDK 21
+          - elastic-stack-version: "9.next"
+            docker-env: "dockerjdk21.env"
+            snapshot: true
+          - elastic-stack-version: "main"
+            docker-env: "dockerjdk21.env"
+            snapshot: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup test environment
+        id: setup
+        uses: logstash-plugins/.ci/setup@feature/github-actions
+        with:
+          elastic-stack-version: ${{ matrix.elastic-stack-version }}
+          snapshot: ${{ matrix.snapshot }}
+          docker-env: ${{ matrix.docker-env }}
+
+      - name: Run performance tests
+        if: steps.setup.outputs.skip != 'true'
+        run: |
+          bash .ci/performance/docker-setup.sh
+          bash .ci/performance/docker-run.sh
+        env:
+          ELASTIC_STACK_VERSION: ${{ matrix.elastic-stack-version }}
+          SNAPSHOT: ${{ matrix.snapshot }}
+          DOCKER_ENV: ${{ matrix.docker-env }}
