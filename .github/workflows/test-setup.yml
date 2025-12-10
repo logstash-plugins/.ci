@@ -5,6 +5,15 @@ on:
     branches:
       - "1.x"
 
+## Concurrency only allowed in the 1.x branch.
+## So old builds running for old commits within the same Pull Request are cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/1.x' }}
+
+permissions:
+  contents: read
+
 jobs:
   test-setup-action:
     runs-on: ubuntu-latest

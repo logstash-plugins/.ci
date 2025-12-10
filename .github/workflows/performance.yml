@@ -3,6 +3,15 @@ name: performance
 on:
   workflow_call:
 
+## Concurrency only allowed in the main branch.
+## So old builds running for old commits within the same Pull Request are cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
 jobs:
   performance:
     name: Performance - ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
