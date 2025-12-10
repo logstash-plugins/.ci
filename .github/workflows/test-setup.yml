@@ -4,9 +4,6 @@ on:
   pull_request:
     branches:
       - "1.x"
-  push:
-    branches:
-      - feature/github-actions
 
 jobs:
   test-setup-action:
