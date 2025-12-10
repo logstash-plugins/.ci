@@ -18,5 +18,5 @@ jobs:
           elastic-stack-version: "9.current"
           snapshot: false
 
-      - name: Assert is failure (setup action)
+      - name: Assert is failure (Gemfile is not available in the .ci repository)
         run: test "${{steps.setup.outcome}}" = "failure"
