@@ -15,25 +15,12 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install PyYAML
-        run: pip install pyyaml
+        run: pip install --break-system-packages pyyaml
       
       - name: Generate version matrix
         id: set-matrix
         run: |
-          matrix=$(python3 -c '
-import json, yaml
-
-with open("logstash-versions.yml") as f:
-    data = yaml.safe_load(f)
-
-versions = []
-for alias, version in data.get("releases", {}).items():
-    versions.append({"logstash-release-track": alias, "version": version, "type": "release"})
-for alias, version in data.get("snapshots", {}).items():
-    versions.append({"logstash-release-track": alias, "version": version, "type": "snapshot"})
-
-print(json.dumps({"include": versions}))
-')
+          matrix=$(python3 .github/scripts/generate-matrix.py)
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   validate-images:
