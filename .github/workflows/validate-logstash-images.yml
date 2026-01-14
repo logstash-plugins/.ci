@@ -1,0 +1,62 @@
+name: Validate Logstash Docker Images
+
+on:
+  pull_request:
+    paths:
+      - 'logstash-versions.yml'
+      - '.github/workflows/validate-logstash-images.yml'
+
+jobs:
+  prepare-matrix:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install PyYAML
+        run: pip install pyyaml
+      
+      - name: Generate version matrix
+        id: set-matrix
+        run: |
+          matrix=$(python3 -c '
+import json, yaml
+
+with open("logstash-versions.yml") as f:
+    data = yaml.safe_load(f)
+
+versions = []
+for alias, version in data.get("releases", {}).items():
+    versions.append({"logstash-release-track": alias, "version": version, "type": "release"})
+for alias, version in data.get("snapshots", {}).items():
+    versions.append({"logstash-release-track": alias, "version": version, "type": "snapshot"})
+
+print(json.dumps({"include": versions}))
+')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
+
+  validate-images:
+    needs: prepare-matrix
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.prepare-matrix.outputs.matrix) }}
+    
+    name: Validate ${{ matrix['logstash-release-track'] }} (${{ matrix.version }})
+    
+    steps:
+      - name: Check Docker image availability
+        env:
+          ELASTIC_STACK_VERSION: ${{ matrix.version }}
+          DISTRIBUTION: default
+        run: |
+          docker_image="docker.elastic.co/logstash/logstash:${ELASTIC_STACK_VERSION}"
+          echo "Checking manifest for $docker_image"
+          
+          if docker manifest inspect "$docker_image" > /dev/null 2>&1; then
+            echo "Docker image exists: $docker_image"
+          else
+            echo "Docker image NOT found: $docker_image"
+            exit 1
+          fi
