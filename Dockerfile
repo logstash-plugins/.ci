@@ -4,7 +4,7 @@ FROM docker.elastic.co/logstash/logstash${DISTRIBUTION_SUFFIX}:${ELASTIC_STACK_V
 # install and enable password-less sudo for logstash user
 # allows modifying the system inside the container (using the .ci/setup.sh hook)
 USER root
-# use "apt-get" for 7.x and 8.x images based on ubuntu 20 and "microdnf" for 9.x images based on ubi8-minimal
+# use "apt-get" for and 8.x images based on ubuntu 20 and "microdnf" for 9.x images based on ubi8-minimal
 RUN if [ $(command -v apt-get) ]; then \
       apt-get update -y && apt-get install -y sudo && \
       gpasswd -a logstash sudo; \
