@@ -13,7 +13,7 @@ check_docker_snapshot() {
     echo "docker image exists. proceeding..."
   else
     case $stack_version_alias in
-      "8.previous"|"8.current"|"9.previous"|"9.current"|"9.next")
+      "8.current"|"9.previous"|"9.current"|"9.next")
         exit 99
         ;;
       *)
