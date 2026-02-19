@@ -1,0 +1,29 @@
+# Base test matrix for Logstash plugins.
+
+default_env:
+  DOCKER_ENV: "dockerjdk21.env"
+
+agent:
+  image: "family/core-ubuntu-2204"
+  provider: "gcp"
+  instanceType: "n2-standard-2"
+  diskSizeGb: 64
+
+8.x:
+  unit:
+    - 8.current
+  integration:
+    - 8.current
+
+9.x:
+  unit:
+    - 9.previous
+    - 9.current
+    - main
+  integration:
+    - 8.future
+    - 9.previous
+    - 9.current
+    - 9.next
+    - 9.future
+    - main
