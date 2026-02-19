@@ -8,6 +8,5 @@ releases:
 snapshots:
   8.current: "8.19.12-SNAPSHOT"
   9.previous: "9.2.6-SNAPSHOT"
-  #TODO: update 9.current to 9.3.1-SNAPSHOT once unified release is squared away
-  9.current: "9.2.6-SNAPSHOT"
+  9.current: "9.3.1-SNAPSHOT"
   main: "9.4.0-SNAPSHOT"
