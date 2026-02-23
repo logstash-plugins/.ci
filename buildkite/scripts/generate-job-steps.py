@@ -4,15 +4,27 @@ Central Buildkite step generator for Logstash plugins.
 Lives in logstash-plugins/.ci — fetched by each plugin at pipeline time.
 
 Flow:
-  1. Read base-pr-test-matrix.yml (shared unit + integration versions per stream)
-  2. Read logstash-versions.yml   (version alias -> concrete version, already in .ci root)
-  3. Read plugin-test-config.yml  (plugin overrides + extended stages)
-  4. Determine branch -> stream   (main -> 9.x, 11.x -> 8.x)
-  5. Expand versions into steps, skipping unavailable versions
-  6. Emit Buildkite pipeline YAML to stdout
+  1. Read base-pr-test-matrix.yml   (shared unit + integration versions per stream)
+  2. Read logstash-versions.yml     (version alias -> concrete version, in .ci root)
+  3. Read plugin-tests.yml          (plugin-specific explicit test groups)
+  4. Determine branch -> stream     (main -> 9.x, 11.x -> 8.x)
+  5. Expand base matrix versions, skipping unavailable ones
+  6. Append plugin-specific groups with explicit env entries
+  7. Emit Buildkite pipeline YAML to stdout
+
+Plugin-tests.yml uses plain env-string entries grouped by test stage:
+
+    jobs:
+      - group: "Integration Tests"
+        steps:
+          - env: INTEGRATION=true ELASTIC_STACK_VERSION=8.current
+          - env: INTEGRATION=true SNAPSHOT=true ELASTIC_STACK_VERSION=main
+      - group: "Secure Integration Tests"
+        steps:
+          - env: SECURE_INTEGRATION=true INTEGRATION=true ELASTIC_STACK_VERSION=9.current
 
 Usage:
-    SHARED_CI_DIR=/tmp/ci  PLUGIN_DIR=$(pwd) \
+    SHARED_CI_DIR=/tmp/ci  PLUGIN_DIR=$(pwd) \\
         python3 /tmp/ci/buildkite/scripts/generate-job-steps.py
 """
 
@@ -44,12 +56,11 @@ def load_base_matrix():
 
 
 def load_logstash_versions():
-    """Load logstash-versions.yml from the .ci repo root."""
     return load_yaml(os.path.join(SHARED_CI_DIR, "logstash-versions.yml"))
 
 
-def load_plugin_config():
-    path = os.path.join(PLUGIN_DIR, ".buildkite", "plugin-test-config.yml")
+def load_plugin_tests():
+    path = os.path.join(PLUGIN_DIR, ".buildkite", "pull-request-pipeline", "plugin-tests.yml")
     if not os.path.exists(path):
         return {}
     return load_yaml(path)
@@ -60,28 +71,39 @@ def load_plugin_config():
 # ---------------------------------------------------------------------------
 
 def version_available(logstash_versions, alias, snapshot):
-    """Check whether a concrete version exists for this alias."""
     category = "snapshots" if snapshot else "releases"
-    val = logstash_versions.get(category, {}).get(str(alias))
-    return val is not None
+    return logstash_versions.get(category, {}).get(str(alias)) is not None
 
 
 def expand_versions(version_list, logstash_versions):
-    """Expand a list of version aliases into (alias, snapshot) pairs,
-    skipping aliases that have no concrete version in logstash-versions.yml."""
-    pairs = []
+    """Expand version aliases into (alias, is_snapshot) pairs,
+    skipping aliases without a concrete version in logstash-versions.yml."""
+    results = []
     for alias in version_list:
         alias = str(alias)
         if version_available(logstash_versions, alias, snapshot=False):
-            pairs.append((alias, False))
+            results.append((alias, False))
         if version_available(logstash_versions, alias, snapshot=True):
-            pairs.append((alias, True))
-    return pairs
+            results.append((alias, True))
+    return results
+
+
+def parse_env_string(env_str):
+    """Parse 'KEY=VALUE KEY2=VALUE2 ...' into a dict."""
+    env = {}
+    for token in env_str.split():
+        key, _, value = token.partition("=")
+        if key:
+            env[key] = value
+    return env
 
 
 # ---------------------------------------------------------------------------
 # Label / key helpers
 # ---------------------------------------------------------------------------
+
+STANDARD_ENV_KEYS = {"DOCKER_ENV", "ELASTIC_STACK_VERSION", "SNAPSHOT", "INTEGRATION", "LOG_LEVEL"}
+
 
 def step_label(prefix, env):
     version = env["ELASTIC_STACK_VERSION"]
@@ -89,24 +111,18 @@ def step_label(prefix, env):
     parts = [prefix, version]
     if is_snapshot:
         parts.append("SNAPSHOT")
-    extras = []
-    if env.get("ES_SSL_KEY_INVALID") == "true":
-        extras.append("invalid key")
-    if env.get("ES_SSL_SUPPORTED_PROTOCOLS"):
-        extras.append(env["ES_SSL_SUPPORTED_PROTOCOLS"])
+    extras = sorted(f"{k}={v}" for k, v in env.items() if k not in STANDARD_ENV_KEYS and v)
     if extras:
         parts.append(f"({', '.join(extras)})")
     return " - ".join(parts)
 
 
-def step_key(prefix, env):
+def step_key(prefix, env, index=None):
     parts = [prefix, env["ELASTIC_STACK_VERSION"].replace(".", "-")]
     if env.get("SNAPSHOT") == "true":
         parts.append("snapshot")
-    if env.get("ES_SSL_KEY_INVALID") == "true":
-        parts.append("invalid-key")
-    if env.get("ES_SSL_SUPPORTED_PROTOCOLS"):
-        parts.append(env["ES_SSL_SUPPORTED_PROTOCOLS"].lower().replace(".", ""))
+    if index is not None:
+        parts.append(str(index))
     return "-".join(parts)
 
 
@@ -132,17 +148,16 @@ def make_step(label, key, env, timeout_in_minutes=60):
 # ---------------------------------------------------------------------------
 
 def build_base_group(group_name, emoji, key_prefix, version_list,
-                     logstash_versions, default_env,
-                     extra_env=None, timeout=60):
-    """Build a step group from a list of version aliases."""
+                     logstash_versions, default_env, type_env=None, timeout=60):
+    """Build a Buildkite step group from a list of version aliases (base matrix)."""
     steps = []
     for alias, snapshot in expand_versions(version_list, logstash_versions):
         env = dict(default_env)
+        if type_env:
+            env.update(type_env)
         env["ELASTIC_STACK_VERSION"] = alias
         if snapshot:
             env["SNAPSHOT"] = "true"
-        if extra_env:
-            env.update(extra_env)
         label = step_label(f"{emoji} {group_name}", env)
         key = step_key(key_prefix, env)
         steps.append(make_step(label, key, env, timeout))
@@ -153,22 +168,23 @@ def build_base_group(group_name, emoji, key_prefix, version_list,
     }
 
 
-def build_plugin_stage_group(stage_cfg):
-    """Build a group from an explicit plugin-defined stage."""
-    name = stage_cfg["name"]
-    emoji = stage_cfg.get("emoji", ":gear:")
-    group_key = stage_cfg.get("group_key", name.lower().replace(" ", "-"))
-    timeout = stage_cfg.get("timeout_in_minutes", 60)
+def build_plugin_group(group_cfg, default_env, group_index):
+    """Build a Buildkite step group from an explicit plugin jobs entry."""
+    group_name = group_cfg["group"]
+    key_prefix = f"plugin-{group_index}-{group_name.lower().replace(' ', '-')}"
+    timeout = group_cfg.get("timeout_in_minutes", 60)
 
     steps = []
-    for entry in stage_cfg.get("matrix", []):
-        env = dict(entry)
-        label = step_label(f"{emoji} {name}", env)
-        key = step_key(group_key, env)
+    for i, entry in enumerate(group_cfg.get("steps", [])):
+        env_str = entry.get("env", "")
+        env = dict(default_env)
+        env.update(parse_env_string(env_str))
+        label = step_label(group_name, env)
+        key = step_key(key_prefix, env, index=i)
         steps.append(make_step(label, key, env, timeout))
     return {
-        "group": f"{emoji} {name}",
-        "key": group_key,
+        "group": group_name,
+        "key": key_prefix,
         "steps": steps,
     }
 
@@ -194,10 +210,16 @@ def select_stream(target_branch):
 # Main
 # ---------------------------------------------------------------------------
 
+BASE_TYPE_CONFIG = {
+    "unit": {"display_name": "Unit Tests", "emoji": ":rspec:", "env": {}, "timeout": 30},
+    "integration": {"display_name": "Integration Tests", "emoji": ":elasticsearch:", "env": {"INTEGRATION": "true"}, "timeout": 60},
+}
+
+
 def main():
     base_matrix = load_base_matrix()
     logstash_versions = load_logstash_versions()
-    plugin_config = load_plugin_config()
+    plugin_tests = load_plugin_tests()
 
     target_branch = os.environ.get(
         "TARGET_BRANCH",
@@ -205,37 +227,34 @@ def main():
     )
 
     stream = select_stream(target_branch)
-    stream_cfg = base_matrix.get(stream, {})
+    base_stream_cfg = base_matrix.get(stream, {})
     default_env = base_matrix.get("default_env", {})
     agent_cfg = base_matrix.get("agent", {})
-    overrides = plugin_config.get("overrides", {}).get(stream, {})
+    overrides = plugin_tests.get("overrides", {})
 
     groups = []
 
-    # --- Unit tests (from base matrix) ---
-    if overrides.get("unit", True):
-        unit_versions = stream_cfg.get("unit", [])
-        if unit_versions:
-            groups.append(build_base_group(
-                "Unit Tests", ":rspec:", "unit-tests",
-                unit_versions, logstash_versions, default_env,
-                timeout=30,
-            ))
+    # --- Base matrix test types (unit, integration) ---
+    for test_type, version_list in base_stream_cfg.items():
+        if not version_list:
+            continue
+        if not overrides.get(test_type, True):
+            continue
+        cfg = BASE_TYPE_CONFIG.get(test_type, {
+            "display_name": test_type.replace("_", " ").title(),
+            "emoji": ":gear:", "env": {}, "timeout": 60,
+        })
+        groups.append(build_base_group(
+            cfg["display_name"], cfg["emoji"],
+            test_type.replace("_", "-"),
+            version_list, logstash_versions, default_env,
+            type_env=cfg["env"],
+            timeout=cfg["timeout"],
+        ))
 
-    # --- Integration tests (from base matrix, unless plugin disables) ---
-    if overrides.get("integration", True):
-        integ_versions = stream_cfg.get("integration", [])
-        if integ_versions:
-            groups.append(build_base_group(
-                "Integration Tests", ":elasticsearch:", "base-integration-tests",
-                integ_versions, logstash_versions, default_env,
-                extra_env={"INTEGRATION": "true"},
-                timeout=60,
-            ))
-
-    # --- Plugin-specific extended stages ---
-    for stage in plugin_config.get("stages", []):
-        groups.append(build_plugin_stage_group(stage))
+    # --- Plugin-specific test groups (explicit env entries) ---
+    for i, group_cfg in enumerate(plugin_tests.get("jobs", [])):
+        groups.append(build_plugin_group(group_cfg, default_env, i))
 
     pipeline = {
         "agents": agent_cfg,
