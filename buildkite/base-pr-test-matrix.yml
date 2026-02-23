@@ -10,7 +10,7 @@ agent:
   diskSizeGb: 64
 
 jobs:
-  - group: "Integration Tests"
+  - group: "Unit Tests"
     steps:
       - ELASTIC_STACK_VERSION=9.current
       - ELASTIC_STACK_VERSION=9.previous
