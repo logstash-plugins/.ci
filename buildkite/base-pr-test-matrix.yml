@@ -9,21 +9,14 @@ agent:
   instanceType: "n2-standard-2"
   diskSizeGb: 64
 
-8.x:
-  unit:
-    - 8.current
-  integration:
-    - 8.current
-
-9.x:
-  unit:
-    - 9.previous
-    - 9.current
-    - main
-  integration:
-    - 8.future
-    - 9.previous
-    - 9.current
-    - 9.next
-    - 9.future
-    - main
+jobs:
+  - group: "Integration Tests"
+    steps:
+      - ELASTIC_STACK_VERSION=9.current
+      - ELASTIC_STACK_VERSION=9.previous
+      - ELASTIC_STACK_VERSION=8.current
+      - SNAPSHOT=true ELASTIC_STACK_VERSION=main
+      - SNAPSHOT=true ELASTIC_STACK_VERSION=9.next
+      - SNAPSHOT=true ELASTIC_STACK_VERSION=9.current
+      - SNAPSHOT=true ELASTIC_STACK_VERSION=9.previous
+      - SNAPSHOT=true ELASTIC_STACK_VERSION=8.current

@@ -4,24 +4,33 @@ Central Buildkite step generator for Logstash plugins.
 Lives in logstash-plugins/.ci — fetched by each plugin at pipeline time.
 
 Flow:
-  1. Read base-pr-test-matrix.yml   (shared unit + integration versions per stream)
+  1. Read base-pr-test-matrix.yml   (stream-based 8.x/9.x OR jobs format)
   2. Read logstash-versions.yml     (version alias -> concrete version, in .ci root)
   3. Read plugin-tests.yml          (plugin-specific explicit test groups)
   4. Determine branch -> stream     (main -> 9.x, 11.x -> 8.x)
-  5. Expand base matrix versions, skipping unavailable ones
+  5. Build base groups (stream or jobs format)
   6. Append plugin-specific groups with explicit env entries
-  7. Emit Buildkite pipeline YAML to stdout
+  7. Deduplicate and emit Buildkite pipeline YAML to stdout
 
-Plugin-tests.yml uses plain env-string entries grouped by test stage:
+Base matrix supports two formats:
 
-    jobs:
-      - group: "Integration Tests"
-        steps:
-          - env: INTEGRATION=true ELASTIC_STACK_VERSION=8.current
-          - env: INTEGRATION=true SNAPSHOT=true ELASTIC_STACK_VERSION=main
-      - group: "Secure Integration Tests"
-        steps:
-          - env: SECURE_INTEGRATION=true INTEGRATION=true ELASTIC_STACK_VERSION=9.current
+  A) Stream-based (8.x / 9.x with unit/integration version lists):
+     9.x:
+       unit: [9.previous, 9.current, main]
+       integration: [9.previous, 9.current, main]
+
+  B) Jobs format (explicit env strings per step):
+     jobs:
+       - group: "Integration Tests"
+         steps:
+           - ELASTIC_STACK_VERSION=9.current
+           - SNAPSHOT=true ELASTIC_STACK_VERSION=main
+
+Plugin-tests.yml uses jobs format with env: prefix:
+  jobs:
+    - group: "Integration Tests"
+      steps:
+        - env: INTEGRATION=true ELASTIC_STACK_VERSION=8.current
 
 Usage:
     SHARED_CI_DIR=/tmp/ci  PLUGIN_DIR=$(pwd) \\
@@ -187,6 +196,46 @@ def build_base_group(group_name, emoji, key_prefix, version_list,
     }
 
 
+def _parse_step_env(entry):
+    """Parse a step entry: string or dict with env key."""
+    if isinstance(entry, str):
+        return entry
+    return entry.get("env", "")
+
+
+def _group_type_env(group_name):
+    """Implicit env vars for known base matrix group types."""
+    name_lower = group_name.lower()
+    if "integration" in name_lower and "secure" not in name_lower:
+        return {"INTEGRATION": "true"}
+    if "secure" in name_lower and "integration" in name_lower:
+        return {"SECURE_INTEGRATION": "true", "INTEGRATION": "true"}
+    return {}
+
+
+def build_base_jobs_group(group_cfg, default_env, group_index):
+    """Build a Buildkite step group from base matrix jobs format (explicit env strings)."""
+    group_name = group_cfg["group"]
+    key_prefix = f"base-{group_index}-{group_name.lower().replace(' ', '-')}"
+    timeout = group_cfg.get("timeout_in_minutes", 60)
+    type_env = _group_type_env(group_name)
+
+    steps = []
+    for i, entry in enumerate(group_cfg.get("steps", [])):
+        env_str = _parse_step_env(entry)
+        env = dict(default_env)
+        env.update(type_env)
+        env.update(parse_env_string(env_str))
+        label = step_label(group_name, env)
+        key = step_key(key_prefix, env, index=i)
+        steps.append(make_step(label, key, env, timeout))
+    return {
+        "group": group_name,
+        "key": key_prefix,
+        "steps": steps,
+    }
+
+
 def build_plugin_group(group_cfg, default_env, group_index):
     """Build a Buildkite step group from an explicit plugin jobs entry."""
     group_name = group_cfg["group"]
@@ -195,7 +244,7 @@ def build_plugin_group(group_cfg, default_env, group_index):
 
     steps = []
     for i, entry in enumerate(group_cfg.get("steps", [])):
-        env_str = entry.get("env", "")
+        env_str = _parse_step_env(entry)
         env = dict(default_env)
         env.update(parse_env_string(env_str))
         label = step_label(group_name, env)
@@ -245,31 +294,37 @@ def main():
         os.environ.get("BUILDKITE_BRANCH", "main"),
     )
 
-    stream = select_stream(target_branch)
-    base_stream_cfg = base_matrix.get(stream, {})
+    # --- Base matrix test groups ---
     default_env = base_matrix.get("default_env", {})
     agent_cfg = base_matrix.get("agent", {})
     overrides = plugin_tests.get("overrides", {})
 
     groups = []
 
-    # --- Base matrix test types (unit, integration) ---
-    for test_type, version_list in base_stream_cfg.items():
-        if not version_list:
-            continue
-        if not overrides.get(test_type, True):
-            continue
-        cfg = BASE_TYPE_CONFIG.get(test_type, {
-            "display_name": test_type.replace("_", " ").title(),
-            "emoji": ":gear:", "env": {}, "timeout": 60,
-        })
-        groups.append(build_base_group(
-            cfg["display_name"], cfg["emoji"],
-            test_type.replace("_", "-"),
-            version_list, logstash_versions, default_env,
-            type_env=cfg["env"],
-            timeout=cfg["timeout"],
-        ))
+    if "jobs" in base_matrix:
+        # Jobs format: explicit env strings per step
+        for i, group_cfg in enumerate(base_matrix["jobs"]):
+            groups.append(build_base_jobs_group(group_cfg, default_env, i))
+    else:
+        # Stream format: 8.x / 9.x with unit/integration version lists
+        stream = select_stream(target_branch)
+        base_stream_cfg = base_matrix.get(stream, {})
+        for test_type, version_list in base_stream_cfg.items():
+            if not version_list:
+                continue
+            if not overrides.get(test_type, True):
+                continue
+            cfg = BASE_TYPE_CONFIG.get(test_type, {
+                "display_name": test_type.replace("_", " ").title(),
+                "emoji": ":gear:", "env": {}, "timeout": 60,
+            })
+            groups.append(build_base_group(
+                cfg["display_name"], cfg["emoji"],
+                test_type.replace("_", "-"),
+                version_list, logstash_versions, default_env,
+                type_env=cfg["env"],
+                timeout=cfg["timeout"],
+            ))
 
     # --- Plugin-specific test groups (explicit env entries) ---
     for i, group_cfg in enumerate(plugin_tests.get("jobs", [])):
