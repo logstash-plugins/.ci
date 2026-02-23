@@ -98,6 +98,25 @@ def parse_env_string(env_str):
     return env
 
 
+# Env keys that determine test identity (ignore LOG_LEVEL etc. for deduplication)
+DEDUP_ENV_KEYS = (
+    "DOCKER_ENV", "ELASTIC_STACK_VERSION", "SNAPSHOT",
+    "INTEGRATION", "SECURE_INTEGRATION",
+    "ES_SSL_KEY_INVALID", "ES_SSL_SUPPORTED_PROTOCOLS",
+)
+
+
+def env_canonical_key(env):
+    """Return a deterministic key for deduplication. Two steps with the same
+    key run the same tests."""
+    parts = []
+    for k in DEDUP_ENV_KEYS:
+        v = env.get(k)
+        if v is not None:
+            parts.append(f"{k}={v}")
+    return "|".join(sorted(parts))
+
+
 # ---------------------------------------------------------------------------
 # Label / key helpers
 # ---------------------------------------------------------------------------
@@ -256,9 +275,23 @@ def main():
     for i, group_cfg in enumerate(plugin_tests.get("jobs", [])):
         groups.append(build_plugin_group(group_cfg, default_env, i))
 
+    # --- Remove duplicate steps (same env = same test; first occurrence wins) ---
+    seen = set()
+    deduped = []
+    for g in groups:
+        kept = []
+        for s in g["steps"]:
+            ck = env_canonical_key(s["env"])
+            if ck in seen:
+                continue
+            seen.add(ck)
+            kept.append(s)
+        if kept:
+            deduped.append({**g, "steps": kept})
+
     pipeline = {
         "agents": agent_cfg,
-        "steps": groups,
+        "steps": deduped,
     }
     yaml.dump(pipeline, sys.stdout, default_flow_style=False, sort_keys=False)
 
