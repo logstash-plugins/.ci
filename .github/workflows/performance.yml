@@ -21,31 +21,17 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          # Performance Base-Line
-          - elastic-stack-version: "7.current"
-            docker-env: ""
+        elastic-stack-version:
+          - '8.current'
+          - '9.previous'
+          - '9.current'
+          - 'main'
+        snapshot: [false, true]
+        docker-env: ['dockerjdk21.env']
+        exclude:
+          # main only runs as snapshot
+          - elastic-stack-version: 'main'
             snapshot: false
-          # Release versions with JDK 21
-          - elastic-stack-version: "8.current"
-            docker-env: "dockerjdk21.env"
-            snapshot: false
-          - elastic-stack-version: "8.previous"
-            docker-env: "dockerjdk21.env"
-            snapshot: false
-          - elastic-stack-version: "9.current"
-            docker-env: "dockerjdk21.env"
-            snapshot: false
-          - elastic-stack-version: "9.previous"
-            docker-env: "dockerjdk21.env"
-            snapshot: false
-          # Snapshot versions with JDK 21
-          - elastic-stack-version: "9.next"
-            docker-env: "dockerjdk21.env"
-            snapshot: true
-          - elastic-stack-version: "main"
-            docker-env: "dockerjdk21.env"
-            snapshot: true
 
     steps:
       - name: Checkout code

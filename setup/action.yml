@@ -33,7 +33,7 @@ inputs:
 outputs:
   skip:
     description: 'Whether the test should be skipped'
-    value: ${{ steps.check_skip.outputs.skip }}
+    value: ${{ steps.docker_setup.outputs.skip }}
 
 runs:
   using: 'composite'
