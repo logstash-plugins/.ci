@@ -162,11 +162,11 @@ def make_step(label, key, env, timeout_in_minutes=60):
     return {
         "label": label,
         "key": key,
-        "command": ".buildkite/scripts/run-tests.sh",
+        "command": ".buildkite/run-tests.sh",
         "env": env,
         "timeout_in_minutes": timeout_in_minutes,
         "retry": {
-            "automatic": {"limit": 2},
+            "automatic": {"limit": 1},
         },
     }
 
