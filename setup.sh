@@ -5,7 +5,7 @@ export SHARED_CI_DIR=.ci
 export PLUGIN_DIR="$$(pwd)"
 export TARGET_BRANCH="${GITHUB_PR_TARGET_BRANCH:-main}"
 
-docker-setup.sh
+.ci/docker-setup.sh
 exit_code=$?
 
 case $exit_code in
@@ -29,5 +29,5 @@ esac
 if [ "$SKIP_SCRIPT" = "true" ]; then
   exit 0
 else
-  docker-run.sh
+  .ci/docker-run.sh
 fi
