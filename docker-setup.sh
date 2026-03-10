@@ -14,7 +14,7 @@ check_docker_snapshot() {
   else
     case $stack_version_alias in
       "8.current"|"9.previous"|"9.current"|"9.next")
-        exit 99
+        exit 0
         ;;
       *)
         exit 2
@@ -45,7 +45,7 @@ if [[ -n "$ELASTIC_STACK_RETRIEVED_VERSION" ]]; then
   echo "Translating ELASTIC_STACK_VERSION to ${ELASTIC_STACK_RETRIEVED_VERSION}"
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
 elif [[ "$ELASTIC_STACK_VERSION" == "9.next" ]]; then
-  exit 99
+  exit 0
 else
   # No version translation found, assuming user provided explicit version
   echo "No version found for $ELASTIC_STACK_VERSION, using as-is"
