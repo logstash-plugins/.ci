@@ -36,9 +36,11 @@ ELASTIC_STACK_VERSION_ALIAS="$ELASTIC_STACK_VERSION"
 echo "Computing latest stream version"
 VERSION_CONFIG_FILE="$(dirname "$0")/logstash-versions.yml"
 if [[ "$SNAPSHOT" = "true" ]]; then
-  ELASTIC_STACK_RETRIEVED_VERSION=$(python3 -c "import yaml; print(yaml.safe_load(open('$VERSION_CONFIG_FILE'))['snapshots'].get('$ELASTIC_STACK_VERSION',''))")
+  ELASTIC_STACK_RETRIEVED_VERSION=$(VERSION_CONFIG_FILE="$VERSION_CONFIG_FILE" ELASTIC_STACK_VERSION="$ELASTIC_STACK_VERSION" \
+    python3 -c "import os,yaml; d=yaml.safe_load(open(os.environ['VERSION_CONFIG_FILE'])); print(d.get('snapshots',{}).get(os.environ['ELASTIC_STACK_VERSION'],''))")
 else
-  ELASTIC_STACK_RETRIEVED_VERSION=$(python3 -c "import yaml; print(yaml.safe_load(open('$VERSION_CONFIG_FILE'))['releases'].get('$ELASTIC_STACK_VERSION',''))")
+  ELASTIC_STACK_RETRIEVED_VERSION=$(VERSION_CONFIG_FILE="$VERSION_CONFIG_FILE" ELASTIC_STACK_VERSION="$ELASTIC_STACK_VERSION" \
+    python3 -c "import os,yaml; d=yaml.safe_load(open(os.environ['VERSION_CONFIG_FILE'])); print(d.get('releases',{}).get(os.environ['ELASTIC_STACK_VERSION'],''))")
 fi
 
 if [[ -n "$ELASTIC_STACK_RETRIEVED_VERSION" ]]; then
