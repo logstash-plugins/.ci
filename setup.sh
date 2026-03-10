@@ -18,7 +18,7 @@ case $exit_code in
     ;;
   99)
     echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
-    export SKIP_SCRIPT=true
+    exit 0
     ;;
   *)
     echo "Install failed with an unexpected code: $exit_code. Stopping build."
@@ -26,8 +26,4 @@ case $exit_code in
     ;;
 esac
 
-if [ "$SKIP_SCRIPT" = "true" ]; then
-  exit 0
-else
-  .ci/docker-run.sh
-fi
+.ci/docker-run.sh
