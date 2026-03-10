@@ -47,7 +47,7 @@ if [[ -n "$ELASTIC_STACK_RETRIEVED_VERSION" ]]; then
   echo "Translating ELASTIC_STACK_VERSION to ${ELASTIC_STACK_RETRIEVED_VERSION}"
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
 elif [[ "$ELASTIC_STACK_VERSION" == "9.next" ]]; then
-  exit 0
+  exit 99
 else
   # No version translation found, assuming user provided explicit version
   echo "No version found for $ELASTIC_STACK_VERSION, using as-is"
