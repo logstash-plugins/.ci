@@ -133,12 +133,23 @@ def env_canonical_key(env):
 STANDARD_ENV_KEYS = {"DOCKER_ENV", "ELASTIC_STACK_VERSION", "SNAPSHOT", "INTEGRATION", "LOG_LEVEL"}
 
 
-def step_label(prefix, env):
-    version = env["ELASTIC_STACK_VERSION"]
+def resolve_version(alias, is_snapshot, logstash_versions):
+    """Resolve a version alias (e.g. '9.previous') to its concrete version
+    (e.g. '9.2.5') using logstash-versions.yml. Returns the alias unchanged
+    if no mapping exists."""
+    category = "snapshots" if is_snapshot else "releases"
+    concrete = logstash_versions.get(category, {}).get(str(alias))
+    return concrete if concrete else alias
+
+
+def step_label(prefix, env, logstash_versions=None):
+    alias = env["ELASTIC_STACK_VERSION"]
     is_snapshot = env.get("SNAPSHOT") == "true"
+    if logstash_versions:
+        version = resolve_version(alias, is_snapshot, logstash_versions)
+    else:
+        version = alias
     parts = [prefix, version]
-    if is_snapshot:
-        parts.append("SNAPSHOT")
     extras = sorted(f"{k}={v}" for k, v in env.items() if k not in STANDARD_ENV_KEYS and v)
     if extras:
         parts.append(f"({', '.join(extras)})")
@@ -186,7 +197,7 @@ def build_base_group(group_name, emoji, key_prefix, version_list,
         env["ELASTIC_STACK_VERSION"] = alias
         if snapshot:
             env["SNAPSHOT"] = "true"
-        label = step_label(f"{emoji} {group_name}", env)
+        label = step_label(f"{emoji} {group_name}", env, logstash_versions)
         key = step_key(key_prefix, env)
         steps.append(make_step(label, key, env, timeout))
     return {
@@ -213,7 +224,7 @@ def _group_type_env(group_name):
     return {}
 
 
-def build_base_jobs_group(group_cfg, default_env, group_index):
+def build_base_jobs_group(group_cfg, default_env, group_index, logstash_versions=None):
     """Build a Buildkite step group from base matrix jobs format (explicit env strings)."""
     group_name = group_cfg["group"]
     key_prefix = f"base-{group_index}-{group_name.lower().replace(' ', '-')}"
@@ -226,7 +237,7 @@ def build_base_jobs_group(group_cfg, default_env, group_index):
         env = dict(default_env)
         env.update(type_env)
         env.update(parse_env_string(env_str))
-        label = step_label(group_name, env)
+        label = step_label(group_name, env, logstash_versions)
         key = step_key(key_prefix, env, index=i)
         steps.append(make_step(label, key, env, timeout))
     return {
@@ -236,7 +247,7 @@ def build_base_jobs_group(group_cfg, default_env, group_index):
     }
 
 
-def build_plugin_group(group_cfg, default_env, group_index):
+def build_plugin_group(group_cfg, default_env, group_index, logstash_versions=None):
     """Build a Buildkite step group from an explicit plugin jobs entry."""
     group_name = group_cfg["group"]
     key_prefix = f"plugin-{group_index}-{group_name.lower().replace(' ', '-')}"
@@ -247,7 +258,7 @@ def build_plugin_group(group_cfg, default_env, group_index):
         env_str = _parse_step_env(entry)
         env = dict(default_env)
         env.update(parse_env_string(env_str))
-        label = step_label(group_name, env)
+        label = step_label(group_name, env, logstash_versions)
         key = step_key(key_prefix, env, index=i)
         steps.append(make_step(label, key, env, timeout))
     return {
@@ -304,7 +315,7 @@ def main():
     if "jobs" in base_matrix:
         # Jobs format: explicit env strings per step
         for i, group_cfg in enumerate(base_matrix["jobs"]):
-            groups.append(build_base_jobs_group(group_cfg, default_env, i))
+            groups.append(build_base_jobs_group(group_cfg, default_env, i, logstash_versions))
     else:
         # Stream format: 8.x / 9.x with unit/integration version lists
         stream = select_stream(target_branch)
@@ -328,7 +339,7 @@ def main():
 
     # --- Plugin-specific test groups (explicit env entries) ---
     for i, group_cfg in enumerate(plugin_tests.get("jobs", [])):
-        groups.append(build_plugin_group(group_cfg, default_env, i))
+        groups.append(build_plugin_group(group_cfg, default_env, i, logstash_versions))
 
     # --- Remove duplicate steps (same env = same test; first occurrence wins) ---
     seen = set()
