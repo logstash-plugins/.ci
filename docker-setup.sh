@@ -14,7 +14,7 @@ check_docker_snapshot() {
   else
     case $stack_version_alias in
       "8.current"|"9.previous"|"9.current"|"9.next")
-        exit 0
+        exit 99
         ;;
       *)
         exit 2

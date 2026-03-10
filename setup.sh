@@ -16,6 +16,10 @@ case $exit_code in
     echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist. Aborting build."
     exit $exit_code
     ;;
+  99)
+    echo "Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build. Skipping."
+    exit 99
+    ;;
   *)
     echo "Install failed with an unexpected code: $exit_code. Stopping build."
     exit $exit_code
