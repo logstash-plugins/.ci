@@ -178,7 +178,10 @@ def make_step(label, key, env, timeout_in_minutes=60):
         "timeout_in_minutes": timeout_in_minutes,
         "soft_fail": [{"exit_status": 99}],
         "retry": {
-            "automatic": {"limit": 1},
+            "automatic": [
+                {"exit_status": "*", "limit": 1},
+                {"exit_status": 99, "limit": 0},
+            ],
         },
     }
 
