@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
+export SHARED_CI_DIR=.ci
+export PLUGIN_DIR="$$(pwd)"
+export TARGET_BRANCH="${GITHUB_PR_TARGET_BRANCH:-main}"
+
 docker-setup.sh
 exit_code=$?
 
