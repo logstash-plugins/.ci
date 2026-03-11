@@ -1,4 +1,4 @@
-name: Test
+name: Integration Tests
 
 on:
   workflow_call:
@@ -18,26 +18,21 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    name: Test - ES ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' (Snapshot)' || '' }}
+  integration-tests:
+    name: Integration Test - ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         elastic-stack-version:
           - '8.current'
-          - '9.previous'
           - '9.current'
-          - '9.next'
-          - 'main'
         snapshot: [false, true]
-        docker-env: ['dockerjdk21.env']
-        exclude:
-          # 9.next and main only run as snapshot
+        include:
           - elastic-stack-version: '9.next'
-            snapshot: false
+            snapshot: true
           - elastic-stack-version: 'main'
-            snapshot: false
+            snapshot: true
 
     steps:
       - name: Checkout code
@@ -49,9 +44,9 @@ jobs:
         with:
           elastic-stack-version: ${{ matrix.elastic-stack-version }}
           snapshot: ${{ matrix.snapshot }}
-          docker-env: ${{ matrix.docker-env }}
+          integration: true
 
-      - name: Run tests
+      - name: Run integration tests
         if: steps.setup.outputs.skip != 'true'
         timeout-minutes: ${{ inputs.timeout-minutes }}
         run: bash .ci/docker-run.sh
