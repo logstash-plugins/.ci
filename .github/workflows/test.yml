@@ -8,12 +8,6 @@ on:
         type: number
         default: 60
 
-## Concurrency only allowed in the main branch.
-## So old builds running for old commits within the same Pull Request are cancelled
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
-
 permissions:
   contents: read
 
