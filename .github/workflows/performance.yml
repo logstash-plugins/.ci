@@ -14,7 +14,7 @@ permissions:
 
 jobs:
   performance:
-    name: Performance Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
+    name: Performance Tests / Stack ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
     # Only run performance tests if HAS_PERFORMANCE_TESTS is set to 1
     if: vars.HAS_PERFORMANCE_TESTS == '1'
     runs-on: ubuntu-latest
