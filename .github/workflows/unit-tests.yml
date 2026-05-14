@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   unit-tests:
-    name: Unit Tests / ES ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' (Snapshot)' || '' }}
+    name: Unit Tests / Stack ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' (Snapshot)' || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false

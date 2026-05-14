@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   secure-integration-tests:
-    name: Secure Integration Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}${{ matrix.es-ssl-key-invalid == 'true' && ' (Invalid SSL)' || '' }}${{ matrix.es-ssl-supported-protocols != '' && format(' ({0})', matrix.es-ssl-supported-protocols) || '' }}
+    name: Secure Integration Tests / Stack ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}${{ matrix.es-ssl-key-invalid == 'true' && ' (Invalid SSL)' || '' }}${{ matrix.es-ssl-supported-protocols != '' && format(' ({0})', matrix.es-ssl-supported-protocols) || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
