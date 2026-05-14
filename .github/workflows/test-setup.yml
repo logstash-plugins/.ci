@@ -1,0 +1,33 @@
+name: Validate Setup Action
+
+on:
+  pull_request:
+    branches:
+      - "1.x"
+
+## Concurrency only allowed in the 1.x branch.
+## So old builds running for old commits within the same Pull Request are cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/1.x' }}
+
+permissions:
+  contents: read
+
+jobs:
+  validate-setup-action:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      # Expected to fail: the .ci repo has no Gemfile, so docker-setup.sh will error.
+      # We use continue-on-error + assertion to verify the action fails gracefully.
+      - uses: ./setup
+        id: setup
+        continue-on-error: true
+        with:
+          elastic-stack-version: "9.current"
+          snapshot: false
+
+      - name: Assert is failure (Gemfile is not available in the .ci repository)
+        run: test "${{steps.setup.outcome}}" = "failure"

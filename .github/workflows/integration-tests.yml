@@ -1,0 +1,46 @@
+name: Plugin Integration Tests
+
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: 'Timeout for the test step in minutes'
+        type: number
+        default: 60
+
+permissions:
+  contents: read
+
+jobs:
+  integration-tests:
+    name: Integration Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        elastic-stack-version:
+          - '8.current'
+          - '9.current'
+        snapshot: [false, true]
+        include:
+          - elastic-stack-version: '9.next'
+            snapshot: true
+          - elastic-stack-version: 'main'
+            snapshot: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup test environment
+        id: setup
+        uses: logstash-plugins/.ci/setup@1.x
+        with:
+          elastic-stack-version: ${{ matrix.elastic-stack-version }}
+          snapshot: ${{ matrix.snapshot }}
+          integration: true
+
+      - name: Run integration tests
+        if: steps.setup.outputs.skip != 'true'
+        timeout-minutes: ${{ inputs.timeout-minutes }}
+        run: bash .ci/docker-run.sh

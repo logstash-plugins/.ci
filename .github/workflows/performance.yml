@@ -1,0 +1,56 @@
+name: Plugin Performance Tests
+
+on:
+  workflow_call:
+
+## Concurrency only allowed in the main branch.
+## So old builds running for old commits within the same Pull Request are cancelled
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+permissions:
+  contents: read
+
+jobs:
+  performance:
+    name: Performance Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
+    # Only run performance tests if HAS_PERFORMANCE_TESTS is set to 1
+    if: vars.HAS_PERFORMANCE_TESTS == '1'
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        elastic-stack-version:
+          - '8.current'
+          - '9.previous'
+          - '9.current'
+          - 'main'
+        snapshot: [false, true]
+        docker-env: ['dockerjdk21.env']
+        exclude:
+          # main only runs as snapshot
+          - elastic-stack-version: 'main'
+            snapshot: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Setup test environment
+        id: setup
+        uses: logstash-plugins/.ci/setup@1.x
+        with:
+          elastic-stack-version: ${{ matrix.elastic-stack-version }}
+          snapshot: ${{ matrix.snapshot }}
+          docker-env: ${{ matrix.docker-env }}
+
+      - name: Run performance tests
+        if: steps.setup.outputs.skip != 'true'
+        run: |
+          bash .ci/performance/docker-setup.sh
+          bash .ci/performance/docker-run.sh
+        env:
+          ELASTIC_STACK_VERSION: ${{ matrix.elastic-stack-version }}
+          SNAPSHOT: ${{ matrix.snapshot }}
+          DOCKER_ENV: ${{ matrix.docker-env }}

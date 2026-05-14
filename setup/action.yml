@@ -1,0 +1,116 @@
+name: 'Setup Test Environment'
+description: 'Common setup steps for unit, integration and secure integration tests'
+
+inputs:
+  elastic-stack-version:
+    description: 'Elasticsearch stack version to test against'
+    required: true
+  snapshot:
+    description: 'Whether to use snapshot version'
+    required: false
+    default: 'false'
+  docker-env:
+    description: 'Docker environment file (e.g., dockerjdk21.env)'
+    required: false
+    default: ''
+  integration:
+    description: 'Enable integration testing'
+    required: false
+    default: 'false'
+  secure-integration:
+    description: 'Enable secure integration testing'
+    required: false
+    default: 'false'
+  es-ssl-key-invalid:
+    description: 'Use invalid SSL key for testing'
+    required: false
+    default: 'false'
+  es-ssl-supported-protocols:
+    description: 'SSL/TLS protocols to test'
+    required: false
+    default: ''
+
+outputs:
+  skip:
+    description: 'Whether the test should be skipped'
+    value: ${{ steps.docker_setup.outputs.skip }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up environment variables
+      shell: bash
+      env:
+        ELASTIC_STACK_VERSION: ${{ inputs.elastic-stack-version }}
+        SNAPSHOT: ${{ inputs.snapshot }}
+        DOCKER_ENV: ${{ inputs.docker-env }}
+        INTEGRATION: ${{ inputs.integration }}
+        SECURE_INTEGRATION: ${{ inputs.secure-integration }}
+        ES_SSL_KEY_INVALID: ${{ inputs.es-ssl-key-invalid }}
+        ES_SSL_SUPPORTED_PROTOCOLS: ${{ inputs.es-ssl-supported-protocols }}
+      run: |
+        echo "LOG_LEVEL=info" >> $GITHUB_ENV
+        echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}" >> $GITHUB_ENV
+        
+        if [ "${SNAPSHOT}" = "true" ]; then
+          echo "SNAPSHOT=true" >> $GITHUB_ENV
+        fi
+
+        if [ -n "${DOCKER_ENV}" ]; then
+          echo "DOCKER_ENV=${DOCKER_ENV}" >> $GITHUB_ENV
+        fi
+
+        if [ "${INTEGRATION}" = "true" ]; then
+          echo "INTEGRATION=true" >> $GITHUB_ENV
+        fi
+
+        if [ "${SECURE_INTEGRATION}" = "true" ]; then
+          echo "SECURE_INTEGRATION=true" >> $GITHUB_ENV
+        fi
+
+        if [ "${ES_SSL_KEY_INVALID}" = "true" ]; then
+          echo "ES_SSL_KEY_INVALID=true" >> $GITHUB_ENV
+        fi
+
+        if [ -n "${ES_SSL_SUPPORTED_PROTOCOLS}" ]; then
+          echo "ES_SSL_SUPPORTED_PROTOCOLS=${ES_SSL_SUPPORTED_PROTOCOLS}" >> $GITHUB_ENV
+        fi
+
+    - name: Setup Docker Buildx
+      uses: docker/setup-buildx-action@8d2750c68a42422c14e847fe6c8ac0403b4cbd6f # v3
+
+    - name: Bootstrap CI assets
+      shell: bash
+      run: |
+        mkdir -p .ci
+        curl -sL https://github.com/logstash-plugins/.ci/archive/1.x.tar.gz | \
+        sh -c 'if tar --version 2>/dev/null | grep -q "GNU tar"; then
+          TAR_KEEP="--skip-old-files"; TAR_WILDCARDS="--wildcards";
+        else
+          TAR_KEEP="-k"; TAR_WILDCARDS="";
+        fi; tar -xzvf - $TAR_KEEP --strip-components=1 -C .ci $TAR_WILDCARDS "*Dockerfile*" "*docker*" "*.sh" "*logstash-versions*"'
+
+    - name: Run docker-setup.sh
+      id: docker_setup
+      shell: bash {0}
+      run: |
+        set +e
+        .ci/docker-setup.sh
+        exit_code=$?
+        case $exit_code in
+          0)
+            echo "Install succeeded."
+            ;;
+          2)
+            echo "::error::Failed to pull logstash-${ELASTIC_STACK_VERSION}. The image should exist. Aborting build."
+            exit $exit_code
+            ;;
+          99)
+            echo "::notice::Failed to pull logstash-${ELASTIC_STACK_VERSION}. Likely due to missing DRA build."
+            echo "skip=true" >> $GITHUB_OUTPUT
+            ;;
+          *)
+            echo "::error::Install failed with an unexpected code: $exit_code. Stopping build."
+            exit $exit_code
+            ;;
+        esac
