@@ -83,7 +83,7 @@ runs:
       shell: bash
       run: |
         mkdir -p .ci
-        curl -sL https://github.com/logstash-plugins/.ci/archive/better-sudo.tar.gz | \
+        curl -sL https://github.com/logstash-plugins/.ci/archive/1.x.tar.gz | \
         sh -c 'if tar --version 2>/dev/null | grep -q "GNU tar"; then
           TAR_KEEP="--skip-old-files"; TAR_WILDCARDS="--wildcards";
         else

@@ -34,7 +34,7 @@ jobs:
 
       - name: Setup test environment
         id: setup
-        uses: logstash-plugins/.ci/setup@better-sudo
+        uses: logstash-plugins/.ci/setup@1.x
         with:
           elastic-stack-version: ${{ matrix.elastic-stack-version }}
           snapshot: ${{ matrix.snapshot }}
