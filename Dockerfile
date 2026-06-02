@@ -20,6 +20,15 @@ RUN if [ $(command -v apt-get) ]; then \
     fi
 RUN echo "logstash ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/logstash && \
     chmod 0440 /etc/sudoers.d/logstash
+# Neutralize PAM for sudo to avoid "PAM account management error: Authentication
+# service cannot retrieve authentication info" on container images where the
+# default /etc/pam.d/sudo stack can't resolve the logstash user. NOPASSWD alone
+# is not enough: PAM "account" runs before sudoers is consulted.
+RUN printf '%s\n' \
+      'auth     sufficient pam_permit.so' \
+      'account  sufficient pam_permit.so' \
+      'session  sufficient pam_permit.so' \
+      > /etc/pam.d/sudo
 USER logstash
 # whole . plugin code could be copied here but we only do that after bundle install,
 # to speedup incremental builds (locally one's mostly changing lib/ and spec/ files)
