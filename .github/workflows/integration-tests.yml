@@ -7,6 +7,10 @@ on:
         description: 'Timeout for the test step in minutes'
         type: number
         default: 60
+      ref:
+        description: 'Git ref to check out. Defaults to the caller workflow''s ref; set explicitly when a scheduled matrix job needs to test a non-default branch.'
+        type: string
+        default: ''
 
 permissions:
   contents: read
@@ -31,6 +35,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Setup test environment
         id: setup
