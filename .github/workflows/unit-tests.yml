@@ -11,6 +11,14 @@ on:
         description: 'Git ref to check out. Defaults to the caller workflow''s ref; set explicitly when a scheduled matrix job needs to test a non-default branch.'
         type: string
         default: ''
+      elastic-stack-versions:
+        description: 'JSON array of ELASTIC_STACK_VERSION values to test against. Empty string = use the built-in default matrix.'
+        type: string
+        default: ''
+      distribution:
+        description: 'Stack distribution (default | oss). Passed through to the setup action as the DISTRIBUTION env var.'
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -22,12 +30,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        elastic-stack-version:
-          - '8.current'
-          - '9.previous'
-          - '9.current'
-          - '9.next'
-          - 'main'
+        elastic-stack-version: ${{ fromJSON(inputs.elastic-stack-versions != '' && inputs.elastic-stack-versions || '["8.current","9.previous","9.current","9.next","main"]') }}
         snapshot: [false, true]
         docker-env: ['dockerjdk21.env']
         exclude:
@@ -50,6 +53,7 @@ jobs:
           elastic-stack-version: ${{ matrix.elastic-stack-version }}
           snapshot: ${{ matrix.snapshot }}
           docker-env: ${{ matrix.docker-env }}
+          distribution: ${{ inputs.distribution }}
 
       - name: Run tests
         if: steps.setup.outputs.skip != 'true'
