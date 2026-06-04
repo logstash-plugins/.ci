@@ -11,6 +11,14 @@ on:
         description: 'Git ref to check out. Defaults to the caller workflow''s ref; set explicitly when a scheduled matrix job needs to test a non-default branch.'
         type: string
         default: ''
+      elastic-stack-versions:
+        description: 'JSON array of ELASTIC_STACK_VERSION values to test against. Empty string = use the built-in default matrix (SSL/TLS variants and snapshot fan-out via includes). Setting this drops all includes and gives you a strict cartesian product of versions × [snapshot:false, snapshot:true] with no SSL/TLS variants.'
+        type: string
+        default: ''
+      distribution:
+        description: 'Stack distribution (default | oss). Passed through to the setup action as the DISTRIBUTION env var.'
+        type: string
+        default: 'default'
 
 permissions:
   contents: read
@@ -22,48 +30,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        elastic-stack-version:
-          - '8.current'
-          - '9.current'
-        snapshot: [false]
+        elastic-stack-version: ${{ fromJSON(inputs.elastic-stack-versions != '' && inputs.elastic-stack-versions || '["8.current","9.current"]') }}
+        snapshot: ${{ fromJSON(inputs.elastic-stack-versions != '' && '[false, true]' || '[false]') }}
         es-ssl-key-invalid: ['false']
         es-ssl-supported-protocols: ['']
-        include:
-          # SSL key invalid variants
-          - elastic-stack-version: '8.current'
-            snapshot: false
-            es-ssl-key-invalid: 'true'
-            es-ssl-supported-protocols: ''
-          - elastic-stack-version: '9.current'
-            snapshot: false
-            es-ssl-key-invalid: 'true'
-            es-ssl-supported-protocols: ''
-          # TLSv1.3 variants
-          - elastic-stack-version: '8.current'
-            snapshot: false
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: 'TLSv1.3'
-          - elastic-stack-version: '9.current'
-            snapshot: false
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: 'TLSv1.3'
-          # Snapshot variants
-          - elastic-stack-version: '8.current'
-            snapshot: true
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: ''
-          - elastic-stack-version: '9.current'
-            snapshot: true
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: ''
-          - elastic-stack-version: '9.next'
-            snapshot: true
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: ''
-          - elastic-stack-version: 'main'
-            snapshot: true
-            es-ssl-key-invalid: 'false'
-            es-ssl-supported-protocols: ''
+        include: ${{ fromJSON(inputs.elastic-stack-versions != '' && '[]' || '[{"elastic-stack-version":"8.current","snapshot":false,"es-ssl-key-invalid":"true","es-ssl-supported-protocols":""},{"elastic-stack-version":"9.current","snapshot":false,"es-ssl-key-invalid":"true","es-ssl-supported-protocols":""},{"elastic-stack-version":"8.current","snapshot":false,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":"TLSv1.3"},{"elastic-stack-version":"9.current","snapshot":false,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":"TLSv1.3"},{"elastic-stack-version":"8.current","snapshot":true,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":""},{"elastic-stack-version":"9.current","snapshot":true,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":""},{"elastic-stack-version":"9.next","snapshot":true,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":""},{"elastic-stack-version":"main","snapshot":true,"es-ssl-key-invalid":"false","es-ssl-supported-protocols":""}]') }}
 
     steps:
       - name: Checkout code
@@ -81,6 +52,7 @@ jobs:
           secure-integration: true
           es-ssl-key-invalid: ${{ matrix.es-ssl-key-invalid }}
           es-ssl-supported-protocols: ${{ matrix.es-ssl-supported-protocols }}
+          distribution: ${{ inputs.distribution }}
 
       - name: Run secure integration tests
         if: steps.setup.outputs.skip != 'true'

@@ -29,6 +29,10 @@ inputs:
     description: 'SSL/TLS protocols to test'
     required: false
     default: ''
+  distribution:
+    description: 'Stack distribution (default | oss). Maps to the DISTRIBUTION env var read by docker-setup.sh.'
+    required: false
+    default: 'default'
 
 outputs:
   skip:
@@ -48,6 +52,7 @@ runs:
         SECURE_INTEGRATION: ${{ inputs.secure-integration }}
         ES_SSL_KEY_INVALID: ${{ inputs.es-ssl-key-invalid }}
         ES_SSL_SUPPORTED_PROTOCOLS: ${{ inputs.es-ssl-supported-protocols }}
+        DISTRIBUTION: ${{ inputs.distribution }}
       run: |
         echo "LOG_LEVEL=info" >> $GITHUB_ENV
         echo "ELASTIC_STACK_VERSION=${ELASTIC_STACK_VERSION}" >> $GITHUB_ENV
@@ -74,6 +79,10 @@ runs:
 
         if [ -n "${ES_SSL_SUPPORTED_PROTOCOLS}" ]; then
           echo "ES_SSL_SUPPORTED_PROTOCOLS=${ES_SSL_SUPPORTED_PROTOCOLS}" >> $GITHUB_ENV
+        fi
+
+        if [ -n "${DISTRIBUTION}" ]; then
+          echo "DISTRIBUTION=${DISTRIBUTION}" >> $GITHUB_ENV
         fi
 
     - name: Setup Docker Buildx
