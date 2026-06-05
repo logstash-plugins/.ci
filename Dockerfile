@@ -49,7 +49,8 @@ ENV INTEGRATION=$INTEGRATION
 RUN gem install bundler -v '< 2'
 WORKDIR /usr/share/plugins/plugin
 COPY --chown=logstash:logstash .ci/* /usr/share/plugins/plugin/.ci/
-RUN .ci/setup.sh
+# TODO: address later but we don't need this
+#   RUN .ci/setup.sh
 RUN bundle install --with test ci
 COPY --chown=logstash:logstash . /usr/share/plugins/plugin/
 RUN bundle exec rake vendor
