@@ -25,7 +25,7 @@ permissions:
 
 jobs:
   secure-integration-tests:
-    name: Secure Integration Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}${{ matrix.es-ssl-key-invalid == 'true' && ' (Invalid SSL)' || '' }}${{ matrix.es-ssl-supported-protocols != '' && format(' ({0})', matrix.es-ssl-supported-protocols) || '' }}
+    name: Secure Integration Tests / Stack ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}${{ matrix.es-ssl-key-invalid == 'true' && ' (Invalid SSL)' || '' }}${{ matrix.es-ssl-supported-protocols != '' && format(' ({0})', matrix.es-ssl-supported-protocols) || '' }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -58,3 +58,11 @@ jobs:
         if: steps.setup.outputs.skip != 'true'
         timeout-minutes: ${{ inputs.timeout-minutes }}
         run: bash .ci/docker-run.sh
+
+      - name: Notify Slack on failure
+        if: ${{ failure() && github.event_name != 'pull_request' }}
+        uses: elastic/oblt-actions/slack/send@v1
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: '#logstash-plugin-ci'
+          message: ":red_circle: Secure integration tests failed for `${{ github.repository }}@${{ github.ref_name }}` (Stack ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' snapshot' || '' }}) — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"

@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   performance:
-    name: Performance Tests / ES ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
+    name: Performance Tests / Stack ${{ matrix.elastic-stack-version }} ${{ matrix.snapshot && '(Snapshot)' || '' }}
     # Only run performance tests if HAS_PERFORMANCE_TESTS is set to 1
     if: vars.HAS_PERFORMANCE_TESTS == '1'
     runs-on: ubuntu-latest
@@ -66,3 +66,11 @@ jobs:
           ELASTIC_STACK_VERSION: ${{ matrix.elastic-stack-version }}
           SNAPSHOT: ${{ matrix.snapshot }}
           DOCKER_ENV: ${{ matrix.docker-env }}
+
+      - name: Notify Slack on failure
+        if: ${{ failure() && github.event_name != 'pull_request' }}
+        uses: elastic/oblt-actions/slack/send@v1
+        with:
+          bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
+          channel-id: '#logstash-plugin-ci'
+          message: ":red_circle: Performance tests failed for `${{ github.repository }}@${{ github.ref_name }}` (Stack ${{ matrix.elastic-stack-version }}${{ matrix.snapshot && ' snapshot' || '' }}) — <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View run>"
