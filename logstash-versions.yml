@@ -6,7 +6,7 @@ releases:
 
 # Track the ongoing SNAPSHOT for the "next" release for each stream
 snapshots:
-  8.current: "8.19.17-SNAPSHOT"
-  9.previous: "9.3.6-SNAPSHOT"
+  8.current: "8.19.18-SNAPSHOT"
+  9.previous: "9.3.7-SNAPSHOT"
   9.current: "9.4.3-SNAPSHOT"
   main: "9.5.0-SNAPSHOT"
