@@ -1,7 +1,7 @@
 # For all active streams track the latest 2 releases
 releases:
-  8.current: "8.19.16"
-  9.previous: "9.3.5"
+  8.current: "8.19.17"
+  9.previous: "9.3.6"
   9.current: "9.4.2"
 
 # Track the ongoing SNAPSHOT for the "next" release for each stream
