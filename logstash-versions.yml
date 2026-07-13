@@ -9,4 +9,5 @@ snapshots:
   8.current: "8.19.19-SNAPSHOT"
   9.previous: "9.3.8-SNAPSHOT"
   9.current: "9.4.4-SNAPSHOT"
-  main: "9.5.0-SNAPSHOT"
+  9.next: "9.5.0-SNAPSHOT"
+  main: "9.6.0-SNAPSHOT"
