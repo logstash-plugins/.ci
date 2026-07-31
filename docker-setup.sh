@@ -13,7 +13,7 @@ check_docker_snapshot() {
     echo "docker image exists. proceeding..."
   else
     case $stack_version_alias in
-      "8.current"|"9.previous"|"9.current"|"9.next")
+      "8.current"|"9.previous"|"9.current"|"9.next"|"main")
         exit 99
         ;;
       *)
@@ -44,7 +44,8 @@ fi
 if [[ -n "$ELASTIC_STACK_RETRIEVED_VERSION" ]]; then
   echo "Translating ELASTIC_STACK_VERSION to ${ELASTIC_STACK_RETRIEVED_VERSION}"
   export ELASTIC_STACK_VERSION=$ELASTIC_STACK_RETRIEVED_VERSION
-elif [[ "$ELASTIC_STACK_VERSION" == "9.next" ]]; then
+# main, like 9.next, is snapshot-only: no released non-SNAPSHOT image exists to pull
+elif [[ "$ELASTIC_STACK_VERSION" == "9.next" || "$ELASTIC_STACK_VERSION" == "main" ]]; then
   exit 99
 else
   # No version translation found, assuming user provided explicit version
