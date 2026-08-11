@@ -19,6 +19,10 @@ on:
         description: 'Stack distribution (default | oss). Passed through to the setup action as the DISTRIBUTION env var.'
         type: string
         default: 'default'
+      notify-slack:
+        description: 'Send a Slack notification on failure.'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -61,7 +65,7 @@ jobs:
         run: bash .ci/docker-run.sh
 
       - name: Notify Slack on failure
-        if: ${{ failure() && github.event_name != 'pull_request' }}
+        if: ${{ failure() && github.event_name != 'pull_request' && inputs.notify-slack }}
         uses: elastic/oblt-actions/slack/send@v1
         with:
           bot-token: ${{ secrets.SLACK_BOT_TOKEN }}
