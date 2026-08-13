@@ -2,7 +2,7 @@
 releases:
   8.current: "8.19.20"
   9.previous: "9.4.5"
-  9.current: "9.5.0"
+  9.current: "9.5.1"
 
 # Track the ongoing SNAPSHOT for the "next" release for each stream
 snapshots:
