@@ -1,6 +1,6 @@
 # For all active streams track the latest 2 releases
 releases:
-  8.current: "8.19.21"
+  8.current: "8.19.22"
   9.previous: "9.4.7"
   9.current: "9.5.4"
 
