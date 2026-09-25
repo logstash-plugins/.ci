@@ -1,0 +1,30 @@
+name: Update dependencies
+
+on:
+  schedule:
+    - cron: "17 8 * * 1-5"
+  workflow_dispatch:
+
+concurrency:
+  group: updatecli
+  cancel-in-progress: false
+
+jobs:
+  updatecli:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout 1.x
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v6
+        with:
+          ref: 1.x
+          persist-credentials: false
+
+      - name: Run Updatecli pipelines
+        uses: elastic/oblt-actions/updatecli/run@v1
+        with:
+          command: pipeline apply --config .updatecli/logstash-versions.yaml --pipeline-ids logstash_versions
+        env:
+          UPDATECLI_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

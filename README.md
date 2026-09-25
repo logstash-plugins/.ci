@@ -23,6 +23,22 @@ import:
 If the plugin follows conventions and (unit) tests all run using `rspec`, simply
 place your own shell scripts in the .ci folder
 
+## Updating Logstash versions locally
+
+Install [Updatecli](https://www.updatecli.io/docs/prologue/installation/), authenticate with `gh`, then run this from the repository root:
+
+```sh
+export UPDATECLI_GITHUB_TOKEN="$(gh auth token)"
+export GITHUB_ACTOR="$(gh api user --jq .login)"
+
+# Preview version changes
+updatecli pipeline diff --config .updatecli/logstash-versions.yaml --pipeline-ids logstash_versions
+
+# Apply locally without pushing
+updatecli pipeline apply --config .updatecli/logstash-versions.yaml --pipeline-ids logstash_versions --push=false --commit=false
+```
+
+Omit `--push=false --commit=false` to apply changes and let Updatecli create or update a pull request.
 
 ## Mac OS throubleshooting
 In some circumstances on MacOS, Rosetta2 could kicks it and generate an error related to QEMU not able to run some x86 code, for example:
