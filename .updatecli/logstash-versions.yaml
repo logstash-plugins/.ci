@@ -1,0 +1,129 @@
+name: Update Logstash release and snapshot versions
+pipelineid: logstash_versions
+
+scms:
+  default:
+    kind: github
+    spec:
+      owner: logstash-plugins
+      repository: .ci
+      branch: 1.x
+      user: '{{ requiredEnv "GITHUB_ACTOR" }}'
+      username: '{{ requiredEnv "GITHUB_ACTOR" }}'
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      commitusingapi: true
+
+sources:
+  latest8Release:
+    name: Get the latest published 8.x Logstash release
+    kind: githubrelease
+    spec:
+      owner: elastic
+      repository: logstash
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      versionfilter:
+        kind: semver
+        pattern: ">=8.0.0 <9.0.0"
+    transformers:
+      - trimprefix: v
+
+  latest9Release:
+    name: Get the latest published 9.x Logstash release
+    kind: githubrelease
+    spec:
+      owner: elastic
+      repository: logstash
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      versionfilter:
+        kind: semver
+        pattern: ">=9.0.0 <10.0.0"
+    transformers:
+      - trimprefix: v
+
+  next8Minor:
+    name: Get the next 8.x minor version from the artifacts API
+    kind: http
+    spec:
+      url: https://storage.googleapis.com/artifacts-api/releases/next/minor-8
+    transformers:
+      - trimsuffix: "\n"
+      - trimsuffix: "\r"
+      - addsuffix: -SNAPSHOT
+
+  next9Minor:
+    name: Get the next 9.x minor version from the artifacts API
+    kind: http
+    spec:
+      url: https://storage.googleapis.com/artifacts-api/releases/next/minor-9
+    transformers:
+      - trimsuffix: "\n"
+      - trimsuffix: "\r"
+      - addsuffix: -SNAPSHOT
+
+  main:
+    name: Get the main edge version from the artifacts API
+    kind: http
+    spec:
+      url: https://storage.googleapis.com/artifacts-api/releases/edge/main
+    transformers:
+      - trimsuffix: "\n"
+      - trimsuffix: "\r"
+      - addsuffix: -SNAPSHOT
+
+targets:
+  update8Release:
+    name: Update the 8.current release to {{ source "latest8Release" }}
+    kind: yaml
+    sourceid: latest8Release
+    scmid: default
+    spec:
+      file: logstash-versions.yml
+      key: "$.releases.'8.current'"
+
+  update9Release:
+    name: Update the 9.current release to {{ source "latest9Release" }}
+    kind: yaml
+    sourceid: latest9Release
+    scmid: default
+    spec:
+      file: logstash-versions.yml
+      key: "$.releases.'9.current'"
+
+  update8Snapshot:
+    name: Update the 8.current snapshot to {{ source "next8Minor" }}
+    kind: yaml
+    sourceid: next8Minor
+    scmid: default
+    spec:
+      file: logstash-versions.yml
+      key: "$.snapshots.'8.current'"
+
+  update9Snapshot:
+    name: Update the 9.current snapshot to {{ source "next9Minor" }}
+    kind: yaml
+    sourceid: next9Minor
+    scmid: default
+    spec:
+      file: logstash-versions.yml
+      key: "$.snapshots.'9.current'"
+
+  updateMainSnapshot:
+    name: Update the main snapshot to {{ source "main" }}
+    kind: yaml
+    sourceid: main
+    scmid: default
+    spec:
+      file: logstash-versions.yml
+      key: $.snapshots.main
+
+actions:
+  default:
+    kind: github/pullrequest
+    title: "chore: update Logstash versions"
+    scmid: default
+    target:
+      - update8Release
+      - update9Release
+      - update8Snapshot
+      - update9Snapshot
+      - updateMainSnapshot
