@@ -30,10 +30,15 @@ Install [Updatecli](https://www.updatecli.io/docs/prologue/installation/), authe
 ```sh
 export UPDATECLI_GITHUB_TOKEN="$(gh auth token)"
 export GITHUB_ACTOR="$(gh api user --jq .login)"
-updatecli pipeline apply logstash_versions --config .updatecli/logstash-versions.yaml
+
+# Preview version changes
+updatecli pipeline diff --config .updatecli/logstash-versions.yaml --pipeline-ids logstash_versions
+
+# Apply locally without pushing
+updatecli pipeline apply --config .updatecli/logstash-versions.yaml --pipeline-ids logstash_versions --push=false --commit=false
 ```
 
-This applies the pipeline and can create or update a pull request.
+Omit `--push=false --commit=false` to apply changes and let Updatecli create or update a pull request.
 
 ## Mac OS throubleshooting
 In some circumstances on MacOS, Rosetta2 could kicks it and generate an error related to QEMU not able to run some x86 code, for example:
