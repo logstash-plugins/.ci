@@ -1,12 +1,13 @@
 # For all active streams track the latest 2 releases
 releases:
-  8.current: "8.19.22"
-  9.previous: "9.4.7"
-  9.current: "9.5.4"
+  8.current: "8.19.23"
+  9.previous: "9.4.8"
+  9.current: "9.5.5"
 
 # Track the ongoing SNAPSHOT for the "next" release for each stream
 snapshots:
-  8.current: "8.19.22-SNAPSHOT"
-  9.previous: "9.4.7-SNAPSHOT"
-  9.current: 9.5.5-SNAPSHOT
-  main: "9.6.0-SNAPSHOT"
+  8.current: "8.19.24-SNAPSHOT"
+  9.previous: "9.4.9-SNAPSHOT"
+  9.current: 9.6.0-SNAPSHOT
+  9.next: "9.6.0-SNAPSHOT"
+  main: "9.7.0-SNAPSHOT"
