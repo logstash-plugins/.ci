@@ -53,4 +53,11 @@ RUN .ci/setup.sh
 RUN cp /usr/share/logstash/Gemfile.lock ./Gemfile.lock
 RUN bundle install --with test ci
 COPY --chown=logstash:logstash . /usr/share/plugins/plugin/
-RUN bundle exec rake vendor
+# Downloading vendored dependencies (e.g. Gradle resolving jars from Maven Central)
+# occasionally fails transiently, so retry a few times before failing the build.
+RUN for attempt in 1 2 3; do \
+      bundle exec rake vendor && exit 0; \
+      echo "rake vendor failed (attempt ${attempt}/3)"; \
+      if [ "${attempt}" -lt 3 ]; then sleep 30; fi; \
+    done; \
+    exit 1
