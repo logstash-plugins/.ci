@@ -54,7 +54,7 @@ jobs:
         run: |
           docker_image="docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_STACK_VERSION}"
           echo "Checking manifest for $docker_image"
-          
+
           if docker manifest inspect "$docker_image" > /dev/null 2>&1; then
             echo "Docker image exists: $docker_image"
           else
