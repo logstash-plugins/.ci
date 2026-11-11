@@ -41,24 +41,34 @@ sources:
     transformers:
       - trimprefix: v
 
-  next8Minor:
-    name: Get the next 8.x minor version from the artifacts API
-    kind: http
+  next8Patch:
+    name: Get the next 8.x patch version
+    kind: githubrelease
     spec:
-      url: https://storage.googleapis.com/artifacts-api/releases/next/minor-8
+      owner: elastic
+      repository: logstash
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      versionfilter:
+        kind: semver
+        pattern: ">=8.0.0 <9.0.0"
     transformers:
-      - trimsuffix: "\n"
-      - trimsuffix: "\r"
+      - trimprefix: v
+      - semverinc: patch
       - addsuffix: -SNAPSHOT
 
-  next9Minor:
-    name: Get the next 9.x minor version from the artifacts API
-    kind: http
+  next9Patch:
+    name: Get the next 9.x patch version
+    kind: githubrelease
     spec:
-      url: https://storage.googleapis.com/artifacts-api/releases/next/minor-9
+      owner: elastic
+      repository: logstash
+      token: '{{ requiredEnv "UPDATECLI_GITHUB_TOKEN" }}'
+      versionfilter:
+        kind: semver
+        pattern: ">=9.0.0 <10.0.0"
     transformers:
-      - trimsuffix: "\n"
-      - trimsuffix: "\r"
+      - trimprefix: v
+      - semverinc: patch
       - addsuffix: -SNAPSHOT
 
   main:
@@ -91,18 +101,18 @@ targets:
       key: "$.releases.'9.current'"
 
   update8Snapshot:
-    name: Update the 8.current snapshot to {{ source "next8Minor" }}
+    name: Update the 8.current snapshot to {{ source "next8Patch" }}
     kind: yaml
-    sourceid: next8Minor
+    sourceid: next8Patch
     scmid: default
     spec:
       file: logstash-versions.yml
       key: "$.snapshots.'8.current'"
 
   update9Snapshot:
-    name: Update the 9.current snapshot to {{ source "next9Minor" }}
+    name: Update the 9.current snapshot to {{ source "next9Patch" }}
     kind: yaml
-    sourceid: next9Minor
+    sourceid: next9Patch
     scmid: default
     spec:
       file: logstash-versions.yml
