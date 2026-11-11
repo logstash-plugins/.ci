@@ -8,6 +8,6 @@ releases:
 snapshots:
   8.current: 8.19.25-SNAPSHOT
   9.previous: "9.4.9-SNAPSHOT"
-  9.current: 9.6.0-SNAPSHOT
+  9.current: 9.5.6-SNAPSHOT
   9.next: "9.6.0-SNAPSHOT"
   main: "9.7.0-SNAPSHOT"
