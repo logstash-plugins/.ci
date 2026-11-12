@@ -6,7 +6,7 @@ releases:
 
 # Track the next patch snapshot for current and previous release tracks.
 snapshots:
-  8.current: "8.19.25-SNAPSHOT"
+  8.current: 8.19.26-SNAPSHOT
   9.previous: "9.4.10-SNAPSHOT"
   9.current: "9.5.7-SNAPSHOT"
   9.next: "9.6.0-SNAPSHOT"
